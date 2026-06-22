@@ -102,7 +102,7 @@ const Hero = () => {
               </a>
               <a 
                 href="#projects" 
-                className="px-10 py-4 bg-transparent text-white border-2 border-white/30 font-black text-xs tracking-[0.2em] rounded-none hover:bg-brand-gold hover:text-brand-teal hover:border-brand-gold transition-all duration-500 inline-flex items-center justify-center uppercase"
+                className="px-6 py-3 md:px-10 md:py-4 bg-transparent text-white border-2 border-white/30 font-black text-[10px] md:text-xs tracking-[0.2em] rounded-none hover:bg-brand-gold hover:text-brand-teal hover:border-brand-gold transition-all duration-500 inline-flex items-center justify-center uppercase"
               >
                 Our Site Portfolio
               </a>

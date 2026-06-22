@@ -53,11 +53,11 @@
   }
   
   .btn-gold {
-    @apply px-10 py-4 bg-brand-gold text-brand-teal font-black text-xs tracking-[0.2em] rounded-none hover:bg-brand-teal hover:text-brand-gold transition-all duration-500 shadow-xl inline-flex items-center justify-center uppercase;
+    @apply px-6 py-3 md:px-10 md:py-4 bg-brand-gold text-brand-teal font-black text-[10px] md:text-xs tracking-[0.2em] rounded-none hover:bg-brand-teal hover:text-brand-gold transition-all duration-500 shadow-xl inline-flex items-center justify-center uppercase;
   }
   
   .btn-outline {
-    @apply px-10 py-4 bg-transparent text-brand-teal border-2 border-brand-teal font-black text-xs tracking-[0.2em] rounded-none hover:bg-brand-teal hover:text-white transition-all duration-500 inline-flex items-center justify-center uppercase;
+    @apply px-6 py-3 md:px-10 md:py-4 bg-transparent text-brand-teal border-2 border-brand-teal font-black text-[10px] md:text-xs tracking-[0.2em] rounded-none hover:bg-brand-teal hover:text-white transition-all duration-500 inline-flex items-center justify-center uppercase;
   }
   
   .card-premium {

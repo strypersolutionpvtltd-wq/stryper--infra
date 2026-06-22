@@ -135,7 +135,7 @@ const Contact = () => {
 
                   <button 
                     type="submit" 
-                    className="w-full bg-brand-gold text-black font-black uppercase tracking-[0.3em] py-6 shadow-2xl hover:bg-white transition-colors flex items-center justify-center gap-4"
+                    className="w-full bg-brand-gold text-black font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm py-4 md:py-6 shadow-2xl hover:bg-white transition-colors flex items-center justify-center gap-4"
                   >
                     Initiate Consultation <Send size={18} />
                   </button>

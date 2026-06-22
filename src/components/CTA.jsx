@@ -59,19 +59,19 @@ const CTA = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={scrollToContact}
-              className="bg-gold hover:bg-gold-light text-primary px-10 py-5 rounded-md font-bold text-lg transition-colors flex items-center gap-3 shadow-2xl group"
+              className="bg-gold hover:bg-gold-light text-primary px-6 py-3 md:px-10 md:py-5 rounded-md font-bold text-sm md:text-lg transition-colors flex items-center gap-3 shadow-2xl group"
             >
               Book Consultation
-              <ArrowRight className="group-hover:translate-x-1 transition-transform" size={22} />
+              <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
             </motion.button>
 
             <motion.a
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               href="tel:+919565310410"
-              className="border-2 border-gold text-gold hover:bg-gold hover:text-primary px-10 py-5 rounded-md font-bold text-lg transition-colors flex items-center gap-3 shadow-2xl"
+              className="border-2 border-gold text-gold hover:bg-gold hover:text-primary px-6 py-3 md:px-10 md:py-5 rounded-md font-bold text-sm md:text-lg transition-colors flex items-center gap-3 shadow-2xl"
             >
-              <Phone size={22} />
+              <Phone size={20} />
               Call Now
             </motion.a>
           </div>

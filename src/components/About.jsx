@@ -54,7 +54,7 @@ const About = () => {
             </div>
 
             {/* Metrics */}
-            <div className="flex items-center gap-20 border-t border-brand-teal/5 pt-12">
+            <div className="flex flex-row flex-wrap items-center gap-8 sm:gap-20 border-t border-brand-teal/5 pt-12">
               <div>
                 <h4 className="text-6xl font-black text-brand-teal italic tracking-tighter">3<span className="text-brand-gold not-italic">+</span></h4>
                 <p className="text-[10px] font-black text-brand-gold uppercase tracking-[0.4em] mt-3">Years Legacy</p>

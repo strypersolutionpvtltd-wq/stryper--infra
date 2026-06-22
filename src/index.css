@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-brand-teal: #032F35;
+  --color-brand-navy: #042B30;
+  --color-brand-gold: #D4AF37;
+  --color-brand-champagne: #E5C878;
+  --color-brand-cream: #FDFBF7;
+  --color-brand-offwhite: #F8F6F0;
+  
+  --font-roboto: "Roboto", sans-serif;
+  --font-montserrat: "Montserrat", sans-serif;
+}
+
+@layer base {
+  * {
+    @apply m-0 p-0 box-border;
+  }
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    font-family: var(--font-roboto);
+    background-color: var(--color-brand-cream);
+    background-image: 
+      radial-gradient(rgba(3, 47, 53, 0.05) 1px, transparent 1px),
+      radial-gradient(rgba(3, 47, 53, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+    @apply antialiased text-brand-teal leading-relaxed overflow-x-hidden;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-montserrat);
+    @apply font-black text-brand-teal leading-tight tracking-tight;
+  }
+  h1 { @apply text-4xl md:text-6xl lg:text-7xl; }
+  h2 { @apply text-3xl md:text-5xl lg:text-6xl; }
+  h3 { @apply text-2xl md:text-3xl; }
+  
+  p {
+    @apply font-normal text-brand-teal/80;
+  }
+}
+
+@layer components {
+  .container-premium {
+    @apply max-w-7xl mx-auto px-6 lg:px-8;
+  }
+  .section-padding {
+    @apply py-24 lg:py-32;
+  }
+  
+  .btn-gold {
+    @apply px-10 py-4 bg-brand-gold text-brand-teal font-black text-xs tracking-[0.2em] rounded-none hover:bg-brand-teal hover:text-brand-gold transition-all duration-500 shadow-xl inline-flex items-center justify-center uppercase;
+  }
+  
+  .btn-outline {
+    @apply px-10 py-4 bg-transparent text-brand-teal border-2 border-brand-teal font-black text-xs tracking-[0.2em] rounded-none hover:bg-brand-teal hover:text-white transition-all duration-500 inline-flex items-center justify-center uppercase;
+  }
+  
+  .card-premium {
+    @apply bg-white rounded-none shadow-2xl border border-brand-teal/5 hover:border-brand-gold/30 transition-all duration-500;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FDFBF7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #032F35;
+}
+
+.text-justify-organic {
+  text-align: justify;
+  text-justify: inter-word;
+}

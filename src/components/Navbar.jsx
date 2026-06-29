@@ -43,7 +43,7 @@ const Navbar = () => {
           <img 
             src={logo} 
             alt="Stryper Logo" 
-            className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${isScrolled ? 'h-14 sm:h-16 md:h-18' : 'h-16 sm:h-20 md:h-24'}`}
+            className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${isScrolled ? 'h-8 sm:h-9 md:h-10' : 'h-10 sm:h-12 md:h-14'}`}
           />
         </Link>
 

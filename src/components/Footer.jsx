@@ -42,10 +42,10 @@ const Footer = () => {
           {/* Company Brand Column */}
           <div className="space-y-10">
             <div className="flex items-center gap-4">
-              <img src={logo} alt="Stryper" className="h-16 md:h-20 w-auto object-contain" />
+              <img src={logo} alt="Stryper" className="h-10 md:h-12 w-auto object-contain" />
               <div className="border-l border-brand-gold/50 pl-4">
                 <h2 className="text-2xl font-black text-white leading-none tracking-tighter">STRYPER</h2>
-                <p className="text-[10px] text-brand-gold tracking-[0.3em] font-bold mt-1 uppercase">INFRA & INTERIOR</p>
+                <p className="text-[10px] text-brand-gold tracking-[0.3em] font-bold mt-1 uppercase">INTERIOR & INFRA</p>
               </div>
             </div>
             <p className="text-brand-cream/60 leading-relaxed text-sm font-medium italic">

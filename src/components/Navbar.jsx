@@ -179,7 +179,7 @@ const Navbar = () => {
                     
                     {menu.isMega ? (
                       /* Mega Menu for Collections */
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 hidden group-hover:grid grid-cols-3 gap-8 bg-brand-teal border border-brand-gold/10 p-8 w-[650px] shadow-2xl transition-all duration-300 backdrop-blur-xl">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 hidden group-hover:grid grid-cols-3 gap-8 bg-brand-teal border border-brand-gold/10 p-8 w-[650px] shadow-2xl transition-all duration-300 backdrop-blur-xl">
                         {menu.submenu.map((sub, sIdx) => (
                           <div key={sIdx} className="space-y-4">
                             <h4 className="text-[10px] font-bold text-brand-gold tracking-[0.2em] uppercase border-b border-brand-gold/20 pb-2">
@@ -212,7 +212,7 @@ const Navbar = () => {
                       </div>
                     ) : (
                       /* Standard Dropdown */
-                      <div className="absolute top-full left-0 mt-1 hidden group-hover:block bg-brand-teal border border-brand-gold/10 py-4 w-52 shadow-2xl transition-all duration-300 backdrop-blur-xl">
+                      <div className="absolute top-full left-0 hidden group-hover:block bg-brand-teal border border-brand-gold/10 py-4 w-52 shadow-2xl transition-all duration-300 backdrop-blur-xl">
                         <ul className="space-y-1">
                           {menu.submenu.map((item, idx) => (
                             <li key={idx}>

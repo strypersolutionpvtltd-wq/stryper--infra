@@ -154,15 +154,18 @@ const Navbar = () => {
     }
   ]
 
+  const isHomePage = location.pathname === '/'
+  const showSolidNav = !isHomePage || isScrolled
+
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-brand-teal/95 backdrop-blur-xl shadow-lg py-1 border-b border-white/5' : 'bg-transparent py-4 border-b border-transparent'}`}>
+    <nav className={`fixed w-full z-50 transition-all duration-500 ${showSolidNav ? 'bg-brand-teal/95 backdrop-blur-xl shadow-lg py-1 border-b border-white/5' : 'bg-transparent py-4 border-b border-transparent'}`}>
       {/* Full width container with large margins to separate logo and navigation links */}
       <div className="w-full px-6 lg:px-12 2xl:px-16 flex justify-between items-center">
         <Link to="/" className="flex items-center group">
           <img 
             src={logo} 
             alt="Stryper Logo" 
-            className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${isScrolled ? 'h-8 sm:h-9 md:h-10' : 'h-10 sm:h-12 md:h-14'}`}
+            className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${showSolidNav ? 'h-8 sm:h-9 md:h-10' : 'h-10 sm:h-12 md:h-14'}`}
           />
         </Link>
 

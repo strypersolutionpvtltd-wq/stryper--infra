@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop'
 const Home = lazy(() => import('./pages/Home'))
 const ServiceDetail = lazy(() => import('./pages/ServiceDetail'))
 const ProjectDetail = lazy(() => import('./pages/ProjectDetail'))
+const DynamicPage = lazy(() => import('./pages/DynamicPage'))
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/service/:slug" element={<ServiceDetail />} />
           <Route path="/project/:slug" element={<ProjectDetail />} />
+          <Route path="/page/:slug" element={<DynamicPage />} />
         </Routes>
       </Suspense>
       <Footer />

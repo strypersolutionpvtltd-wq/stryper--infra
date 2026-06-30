@@ -71,7 +71,7 @@ const Navbar = () => {
     }
   }
 
-  // Vittaazio-inspired luxury dropdown structures mapped to Stryper routes
+  // Vittaazio-inspired luxury dropdown structures mapped to custom dynamic pages
   const menuData = [
     {
       name: 'Our Collections',
@@ -81,28 +81,28 @@ const Navbar = () => {
         {
           category: 'Residential',
           items: [
-            { name: 'Luxury Wardrobes', slug: 'interior-design' },
-            { name: 'Modular Kitchens', slug: 'interior-design' },
-            { name: 'Vanity Solutions', slug: 'interior-design' },
-            { name: 'Wall Panels', slug: 'interior-design' }
+            { name: 'Luxury Wardrobes', slug: 'luxury-wardrobes' },
+            { name: 'Modular Kitchens', slug: 'modular-kitchens' },
+            { name: 'Vanity Solutions', slug: 'vanity-solutions' },
+            { name: 'Wall Panels', slug: 'wall-panels' }
           ]
         },
         {
           category: 'Hospitality & Commercial',
           items: [
-            { name: 'Hotel & Resorts Fit-Out', slug: 'fit-out' },
-            { name: 'Office Workstations', slug: 'architecture' },
-            { name: 'CEO & MD Tables', slug: 'fit-out' },
-            { name: 'Retail Showrooms', slug: 'fit-out' }
+            { name: 'Hotel & Resorts Fit-Out', slug: 'hotel-resorts-fit-out' },
+            { name: 'Office Workstations', slug: 'office-workstations' },
+            { name: 'CEO & MD Tables', slug: 'ceo-md-tables' },
+            { name: 'Retail Showrooms', slug: 'retail-showrooms' }
           ]
         },
         {
           category: 'Infrastructure & Fab',
           items: [
-            { name: 'Industrial Sites', slug: 'infrastructure' },
-            { name: 'Fabrication & Metalwork', slug: 'fabrication' },
-            { name: 'Structural Planning', slug: 'architecture' },
-            { name: 'Project Management', slug: 'project-management' }
+            { name: 'Industrial Sites', slug: 'industrial-sites' },
+            { name: 'Fabrication & Metalwork', slug: 'fabrication-metalwork' },
+            { name: 'Structural Planning', slug: 'structural-planning' },
+            { name: 'Project Management', slug: 'project-management-detail' }
           ]
         }
       ]
@@ -113,8 +113,8 @@ const Navbar = () => {
       submenu: [
         { name: 'Our Vision', href: '#vision-mission' },
         { name: 'Design Ethos', href: '#about' },
-        { name: 'Our Leadership Team', href: '#about' },
-        { name: 'Client Testimonials', href: '#testimonials' }
+        { name: 'Our Leadership Team', slug: 'leadership-team' },
+        { name: 'Client Testimonials', slug: 'client-testimonials-detail' }
       ]
     },
     {
@@ -131,32 +131,33 @@ const Navbar = () => {
       name: 'Inspiration',
       href: '#',
       submenu: [
-        { name: 'Catalogue & Designs', href: '#contact' },
-        { name: 'Custom Design Solutions', slug: 'interior-design' },
-        { name: 'Material Innovations', slug: 'fit-out' }
+        { name: 'Catalogue & Designs', slug: 'catalogue-designs' },
+        { name: 'Custom Design Solutions', slug: 'custom-design-solutions-detail' },
+        { name: 'Material Innovations', slug: 'material-innovations' }
       ]
     },
     {
       name: 'Blogs & Media',
       href: '#',
       submenu: [
-        { name: 'Latest Blogs', href: '#contact' },
-        { name: 'Awards & Recognition', href: '#about' }
+        { name: 'Latest Blogs', slug: 'latest-blogs' },
+        { name: 'Awards & Recognition', slug: 'awards-recognition' }
       ]
     },
     {
       name: 'Contact Us',
       href: '#contact',
       submenu: [
-        { name: 'Inquiry Form', href: '#contact' },
-        { name: 'Work with Us', href: '#contact' }
+        { name: 'Inquiry Form', slug: 'inquiry-form-detail' },
+        { name: 'Work with Us', slug: 'work-with-us' }
       ]
     }
   ]
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-brand-teal/95 backdrop-blur-xl shadow-lg py-1 border-b border-white/5' : 'bg-transparent py-4 border-b border-transparent'}`}>
-      <div className="container-premium flex justify-between items-center">
+      {/* Full width container with large margins to separate logo and navigation links */}
+      <div className="w-full px-6 lg:px-12 2xl:px-16 flex justify-between items-center">
         <Link to="/" className="flex items-center group">
           <img 
             src={logo} 
@@ -165,14 +166,14 @@ const Navbar = () => {
           />
         </Link>
 
-        {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-8">
+        {/* Desktop Nav - xl breakpoint prevents crowding on smaller monitors */}
+        <div className="hidden xl:flex items-center gap-8">
           <div className="flex items-center gap-6">
             {menuData.map((menu) => (
               <div key={menu.name} className="relative group py-2">
                 {menu.submenu ? (
                   <>
-                    <button className="flex items-center gap-1 text-[10px] font-black text-brand-cream/80 hover:text-brand-gold transition-colors tracking-[0.25em] uppercase cursor-pointer">
+                    <button className="flex items-center gap-1 text-[10px] font-black text-brand-cream/85 hover:text-brand-gold transition-colors tracking-[0.18em] uppercase cursor-pointer">
                       {menu.name}
                       <ChevronDown size={10} className="text-brand-gold group-hover:rotate-180 transition-transform duration-300" />
                     </button>
@@ -190,7 +191,7 @@ const Navbar = () => {
                                 <li key={iIdx}>
                                   {item.slug ? (
                                     <Link
-                                      to={`/service/${item.slug}`}
+                                      to={`/page/${item.slug}`}
                                       className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors block py-1"
                                     >
                                       {item.name}
@@ -211,14 +212,14 @@ const Navbar = () => {
                         ))}
                       </div>
                     ) : (
-                      /* Standard Dropdown */
+                      /* Standard Dropdown - No gap to prevent mouse leave bug */
                       <div className="absolute top-full left-0 hidden group-hover:block bg-brand-teal border border-brand-gold/10 py-4 w-52 shadow-2xl transition-all duration-300 backdrop-blur-xl">
                         <ul className="space-y-1">
                           {menu.submenu.map((item, idx) => (
                             <li key={idx}>
                               {item.slug ? (
                                 <Link
-                                  to={`/service/${item.slug}`}
+                                  to={`/page/${item.slug}`}
                                   className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors block px-6 py-2 hover:bg-brand-navy"
                                 >
                                   {item.name}
@@ -242,7 +243,7 @@ const Navbar = () => {
                   <a
                     href={menu.href}
                     onClick={(e) => handleNavClick(e, menu.href)}
-                    className="text-[10px] font-black text-brand-cream/80 hover:text-brand-gold transition-colors tracking-[0.25em] uppercase"
+                    className="text-[10px] font-black text-brand-cream/85 hover:text-brand-gold transition-colors tracking-[0.18em] uppercase"
                   >
                     {menu.name}
                   </a>
@@ -269,14 +270,14 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Toggle */}
-        <button className="lg:hidden text-brand-cream hover:text-brand-gold transition-colors" onClick={() => setIsOpen(!isOpen)}>
+        <button className="xl:hidden text-brand-cream hover:text-brand-gold transition-colors" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-brand-teal border-t border-white/10 absolute w-full left-0 top-full shadow-2xl max-h-[85vh] overflow-y-auto">
+        <div className="xl:hidden bg-brand-teal border-t border-white/10 absolute w-full left-0 top-full shadow-2xl max-h-[85vh] overflow-y-auto">
           <div className="flex flex-col p-8 gap-6">
             {menuData.map((menu) => (
               <div key={menu.name} className="w-full text-left">
@@ -300,7 +301,7 @@ const Navbar = () => {
                                 item.slug ? (
                                   <Link
                                     key={iIdx}
-                                    to={`/service/${item.slug}`}
+                                    to={`/page/${item.slug}`}
                                     onClick={() => setIsOpen(false)}
                                     className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1 pl-2"
                                   >
@@ -324,7 +325,7 @@ const Navbar = () => {
                             item.slug ? (
                               <Link
                                 key={idx}
-                                to={`/service/${item.slug}`}
+                                to={`/page/${item.slug}`}
                                 onClick={() => setIsOpen(false)}
                                 className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1"
                               >

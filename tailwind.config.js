@@ -27,8 +27,8 @@ export default {
         textGray: '#D9D9D9',
       },
       fontFamily: {
-        montserrat: ['Jost', 'Futura', 'sans-serif'],
-        roboto: ['Jost', 'Futura', 'sans-serif'],
+        montserrat: ['Poppins', 'sans-serif'],
+        roboto: ['Product Sans', 'Google Sans', 'sans-serif'],
       },
     },
   },

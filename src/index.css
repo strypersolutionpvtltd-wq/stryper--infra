@@ -8,8 +8,8 @@
   --color-brand-cream: #FDFBF7;
   --color-brand-offwhite: #F8F6F0;
   
-  --font-roboto: "Jost", "Futura", sans-serif;
-  --font-montserrat: "Jost", "Futura", sans-serif;
+  --font-roboto: "Product Sans", "Google Sans", sans-serif;
+  --font-montserrat: "Poppins", sans-serif;
 }
 
 @layer base {

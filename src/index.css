@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
 
 @import "tailwindcss";
 
@@ -10,8 +10,8 @@
   --color-brand-cream: #FDFBF7;
   --color-brand-offwhite: #F8F6F0;
   
-  --font-roboto: "Roboto", sans-serif;
-  --font-montserrat: "Montserrat", sans-serif;
+  --font-roboto: "Jost", "Futura", sans-serif;
+  --font-montserrat: "Jost", "Futura", sans-serif;
 }
 
 @layer base {
@@ -33,7 +33,7 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-montserrat);
-    @apply font-black text-brand-teal leading-tight tracking-tight;
+    @apply font-black text-brand-teal leading-tight tracking-[0.04em];
   }
   h1 { @apply text-4xl md:text-6xl lg:text-7xl; }
   h2 { @apply text-3xl md:text-5xl lg:text-6xl; }

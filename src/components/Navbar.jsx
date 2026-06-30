@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { Menu, X, Phone } from 'lucide-react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 import logo from '../assets/logo.png'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [expandedMenu, setExpandedMenu] = useState(null)
+  
+  const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,26 +19,140 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const navLinks = [
-    { name: 'How it works', href: '#how-it-works' },
-    { name: 'Our Services', href: '#services' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'About', href: '#about' },
-  ]
+  // Scroll to anchor on the same page or redirect and scroll
+  useEffect(() => {
+    const query = new URLSearchParams(location.search)
+    const scrollTarget = query.get('scroll')
+    if (scrollTarget && location.pathname === '/') {
+      const timer = setTimeout(() => {
+        const element = document.getElementById(scrollTarget)
+        if (element) {
+          const offset = 80
+          const bodyRect = document.body.getBoundingClientRect().top
+          const elementRect = element.getBoundingClientRect().top
+          const elementPosition = elementRect - bodyRect
+          const offsetPosition = elementPosition - offset
+          window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
+          
+          // Clean search query after scrolling
+          navigate('/', { replace: true })
+        }
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [location, navigate])
 
-  const scrollToSection = (e, href) => {
-    e.preventDefault()
-    const element = document.querySelector(href)
-    if (element) {
-      const offset = 80
-      const bodyRect = document.body.getBoundingClientRect().top
-      const elementRect = element.getBoundingClientRect().top
-      const elementPosition = elementRect - bodyRect
-      const offsetPosition = elementPosition - offset
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
+  const handleNavClick = (e, href) => {
+    if (href.startsWith('#')) {
+      e.preventDefault()
+      const targetId = href.substring(1)
+      if (location.pathname === '/') {
+        const element = document.getElementById(targetId)
+        if (element) {
+          const offset = 80
+          const bodyRect = document.body.getBoundingClientRect().top
+          const elementRect = element.getBoundingClientRect().top
+          const elementPosition = elementRect - bodyRect
+          const offsetPosition = elementPosition - offset
+          window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
+        }
+      } else {
+        navigate('/?scroll=' + targetId)
+      }
       setIsOpen(false)
     }
   }
+
+  const toggleMobileMenu = (menuName) => {
+    if (expandedMenu === menuName) {
+      setExpandedMenu(null)
+    } else {
+      setExpandedMenu(menuName)
+    }
+  }
+
+  // Vittaazio-inspired luxury dropdown structures mapped to Stryper routes
+  const menuData = [
+    {
+      name: 'Our Collections',
+      href: '#',
+      isMega: true,
+      submenu: [
+        {
+          category: 'Residential',
+          items: [
+            { name: 'Luxury Wardrobes', slug: 'interior-design' },
+            { name: 'Modular Kitchens', slug: 'interior-design' },
+            { name: 'Vanity Solutions', slug: 'interior-design' },
+            { name: 'Wall Panels', slug: 'interior-design' }
+          ]
+        },
+        {
+          category: 'Hospitality & Commercial',
+          items: [
+            { name: 'Hotel & Resorts Fit-Out', slug: 'fit-out' },
+            { name: 'Office Workstations', slug: 'architecture' },
+            { name: 'CEO & MD Tables', slug: 'fit-out' },
+            { name: 'Retail Showrooms', slug: 'fit-out' }
+          ]
+        },
+        {
+          category: 'Infrastructure & Fab',
+          items: [
+            { name: 'Industrial Sites', slug: 'infrastructure' },
+            { name: 'Fabrication & Metalwork', slug: 'fabrication' },
+            { name: 'Structural Planning', slug: 'architecture' },
+            { name: 'Project Management', slug: 'project-management' }
+          ]
+        }
+      ]
+    },
+    {
+      name: 'Our Story',
+      href: '#',
+      submenu: [
+        { name: 'Our Vision', href: '#vision-mission' },
+        { name: 'Design Ethos', href: '#about' },
+        { name: 'Our Leadership Team', href: '#about' },
+        { name: 'Client Testimonials', href: '#testimonials' }
+      ]
+    },
+    {
+      name: 'Our Projects',
+      href: '#',
+      submenu: [
+        { name: 'Residential Masterpieces', href: '#projects' },
+        { name: 'Hospitality Projects', href: '#projects' },
+        { name: 'Commercial Spaces', href: '#projects' },
+        { name: 'Project Gallery', href: '#projects' }
+      ]
+    },
+    {
+      name: 'Inspiration',
+      href: '#',
+      submenu: [
+        { name: 'Catalogue & Designs', href: '#contact' },
+        { name: 'Custom Design Solutions', slug: 'interior-design' },
+        { name: 'Material Innovations', slug: 'fit-out' }
+      ]
+    },
+    {
+      name: 'Blogs & Media',
+      href: '#',
+      submenu: [
+        { name: 'Latest Blogs', href: '#contact' },
+        { name: 'Awards & Recognition', href: '#about' }
+      ]
+    },
+    {
+      name: 'Contact Us',
+      href: '#contact',
+      submenu: [
+        { name: 'Inquiry Form', href: '#contact' },
+        { name: 'Work with Us', href: '#contact' }
+      ]
+    }
+  ]
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-brand-teal/95 backdrop-blur-xl shadow-lg py-1 border-b border-white/5' : 'bg-transparent py-4 border-b border-transparent'}`}>
@@ -50,15 +168,86 @@ const Navbar = () => {
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-8">
           <div className="flex items-center gap-6">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                onClick={(e) => scrollToSection(e, link.href)}
-                className="text-[10px] font-black text-brand-cream/80 hover:text-brand-gold transition-colors tracking-[0.25em] uppercase"
-              >
-                {link.name}
-              </a>
+            {menuData.map((menu) => (
+              <div key={menu.name} className="relative group py-2">
+                {menu.submenu ? (
+                  <>
+                    <button className="flex items-center gap-1 text-[10px] font-black text-brand-cream/80 hover:text-brand-gold transition-colors tracking-[0.25em] uppercase cursor-pointer">
+                      {menu.name}
+                      <ChevronDown size={10} className="text-brand-gold group-hover:rotate-180 transition-transform duration-300" />
+                    </button>
+                    
+                    {menu.isMega ? (
+                      /* Mega Menu for Collections */
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 hidden group-hover:grid grid-cols-3 gap-8 bg-brand-teal border border-brand-gold/10 p-8 w-[650px] shadow-2xl transition-all duration-300 backdrop-blur-xl">
+                        {menu.submenu.map((sub, sIdx) => (
+                          <div key={sIdx} className="space-y-4">
+                            <h4 className="text-[10px] font-bold text-brand-gold tracking-[0.2em] uppercase border-b border-brand-gold/20 pb-2">
+                              {sub.category}
+                            </h4>
+                            <ul className="space-y-2">
+                              {sub.items.map((item, iIdx) => (
+                                <li key={iIdx}>
+                                  {item.slug ? (
+                                    <Link
+                                      to={`/service/${item.slug}`}
+                                      className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors block py-1"
+                                    >
+                                      {item.name}
+                                    </Link>
+                                  ) : (
+                                    <a
+                                      href={item.href}
+                                      onClick={(e) => handleNavClick(e, item.href)}
+                                      className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors block py-1"
+                                    >
+                                      {item.name}
+                                    </a>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      /* Standard Dropdown */
+                      <div className="absolute top-full left-0 mt-1 hidden group-hover:block bg-brand-teal border border-brand-gold/10 py-4 w-52 shadow-2xl transition-all duration-300 backdrop-blur-xl">
+                        <ul className="space-y-1">
+                          {menu.submenu.map((item, idx) => (
+                            <li key={idx}>
+                              {item.slug ? (
+                                <Link
+                                  to={`/service/${item.slug}`}
+                                  className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors block px-6 py-2 hover:bg-brand-navy"
+                                >
+                                  {item.name}
+                                </Link>
+                              ) : (
+                                <a
+                                  href={item.href}
+                                  onClick={(e) => handleNavClick(e, item.href)}
+                                  className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors block px-6 py-2 hover:bg-brand-navy"
+                                >
+                                  {item.name}
+                                </a>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <a
+                    href={menu.href}
+                    onClick={(e) => handleNavClick(e, menu.href)}
+                    className="text-[10px] font-black text-brand-cream/80 hover:text-brand-gold transition-colors tracking-[0.25em] uppercase"
+                  >
+                    {menu.name}
+                  </a>
+                )}
+              </div>
             ))}
           </div>
           
@@ -71,10 +260,10 @@ const Navbar = () => {
             </a>
             <a
               href="#contact"
-              onClick={(e) => scrollToSection(e, '#contact')}
+              onClick={(e) => handleNavClick(e, '#contact')}
               className="btn-gold !py-3 !px-6 !text-[9px] shadow-none"
             >
-              Get Estimate
+              Book a Visit
             </a>
           </div>
         </div>
@@ -87,28 +276,100 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-brand-teal border-t border-white/10 absolute w-full left-0 top-full shadow-2xl">
-          <div className="flex flex-col p-8 gap-6 text-center">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                onClick={(e) => scrollToSection(e, link.href)}
-                className="text-xs font-black text-brand-cream hover:text-brand-gold transition-colors uppercase tracking-[0.2em]"
-              >
-                {link.name}
-              </a>
+        <div className="lg:hidden bg-brand-teal border-t border-white/10 absolute w-full left-0 top-full shadow-2xl max-h-[85vh] overflow-y-auto">
+          <div className="flex flex-col p-8 gap-6">
+            {menuData.map((menu) => (
+              <div key={menu.name} className="w-full text-left">
+                {menu.submenu ? (
+                  <div>
+                    <button
+                      onClick={() => toggleMobileMenu(menu.name)}
+                      className="flex justify-between items-center w-full text-xs font-black text-brand-cream hover:text-brand-gold transition-colors uppercase tracking-[0.2em] py-2"
+                    >
+                      <span>{menu.name}</span>
+                      <ChevronDown size={14} className={`text-brand-gold transition-transform duration-300 ${expandedMenu === menu.name ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {expandedMenu === menu.name && (
+                      <div className="pl-4 mt-2 border-l border-brand-gold/20 space-y-2 bg-brand-navy/30 py-2">
+                        {menu.isMega ? (
+                          menu.submenu.map((sub, sIdx) => (
+                            <div key={sIdx} className="space-y-1 py-1">
+                              <span className="text-[10px] font-bold text-brand-gold uppercase tracking-wider block opacity-80">{sub.category}</span>
+                              {sub.items.map((item, iIdx) => (
+                                item.slug ? (
+                                  <Link
+                                    key={iIdx}
+                                    to={`/service/${item.slug}`}
+                                    onClick={() => setIsOpen(false)}
+                                    className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1 pl-2"
+                                  >
+                                    {item.name}
+                                  </Link>
+                                ) : (
+                                  <a
+                                    key={iIdx}
+                                    href={item.href}
+                                    onClick={(e) => { handleNavClick(e, item.href); setIsOpen(false); }}
+                                    className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1 pl-2"
+                                  >
+                                    {item.name}
+                                  </a>
+                                )
+                              ))}
+                            </div>
+                          ))
+                        ) : (
+                          menu.submenu.map((item, idx) => (
+                            item.slug ? (
+                              <Link
+                                key={idx}
+                                to={`/service/${item.slug}`}
+                                onClick={() => setIsOpen(false)}
+                                className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1"
+                              >
+                                {item.name}
+                              </Link>
+                            ) : (
+                              <a
+                                key={idx}
+                                href={item.href}
+                                onClick={(e) => { handleNavClick(e, item.href); setIsOpen(false); }}
+                                className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1"
+                              >
+                                {item.name}
+                              </a>
+                            )
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <a
+                    href={menu.href}
+                    onClick={(e) => handleNavClick(e, menu.href)}
+                    className="text-xs font-black text-brand-cream hover:text-brand-gold transition-colors uppercase tracking-[0.2em] block py-2"
+                  >
+                    {menu.name}
+                  </a>
+                )}
+              </div>
             ))}
-            <a href="tel:+919565310410" className="flex items-center justify-center gap-2 text-brand-cream hover:text-brand-gold transition-colors font-black text-xs uppercase tracking-widest">
+            
+            <div className="h-px bg-white/10 w-full my-2"></div>
+            
+            <a href="tel:+919565310410" className="flex items-center justify-center gap-2 text-brand-cream hover:text-brand-gold transition-colors font-black text-xs uppercase tracking-widest py-2">
               <Phone size={16} className="text-brand-gold" />
               <span>+91 9565310410</span>
             </a>
+            
             <a
               href="#contact"
-              onClick={(e) => scrollToSection(e, '#contact')}
-              className="btn-gold py-4"
+              onClick={(e) => handleNavClick(e, '#contact')}
+              className="btn-gold py-4 text-center"
             >
-              Get Free Estimate
+              Book a Visit
             </a>
           </div>
         </div>

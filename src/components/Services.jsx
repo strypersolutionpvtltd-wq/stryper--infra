@@ -1,113 +1,177 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Palette, Building2, Ruler, Hammer, ClipboardCheck } from 'lucide-react'
+import React, { useState } from 'react'
+import { motion as motionFramer, AnimatePresence } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
+
+const COLLECTIONS = [
+  {
+    num: '01',
+    title: 'Modular Kitchen',
+    subtitle: 'Culinary Masterpieces',
+    description: 'Precision-engineered luxury kitchens combining high-end Italian finishes with custom ergonomic layouts.',
+    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=2670&auto=format&fit=crop',
+    slug: 'modular-kitchens'
+  },
+  {
+    num: '02',
+    title: 'Luxury Wardrobe',
+    subtitle: 'Tailored Reflections',
+    description: 'Seamless walk-in closets and modular wardrobes detailed with premium glass, leather, and integrated lighting.',
+    image: 'https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=2000&auto=format&fit=crop',
+    slug: 'luxury-wardrobes'
+  },
+  {
+    num: '03',
+    title: 'Vanity Solutions',
+    subtitle: 'Personal Sanctuaries',
+    description: 'Sophisticated washroom vanities and dresser units crafted for ultimate morning refinement and daily calm.',
+    image: 'https://images.unsplash.com/photo-1620626011761-996317b6979a?q=80&w=2000&auto=format&fit=crop',
+    slug: 'vanity-solutions'
+  },
+  {
+    num: '04',
+    title: 'Hospitality Fit-Outs',
+    subtitle: 'Immersive Welcomes',
+    description: 'Bespoke lounge, lobby, and suite furnishings engineered to deliver high-end international guest experiences.',
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2670&auto=format&fit=crop',
+    slug: 'hotel-resorts-fit-out'
+  },
+  {
+    num: '05',
+    title: 'Office Architecture',
+    subtitle: 'Built for Brilliance',
+    description: 'Modern executive tables, workstations, and meeting room furniture built to elevate corporate efficiency.',
+    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2670&auto=format&fit=crop',
+    slug: 'office-workstations'
+  }
+]
 
 const Services = () => {
-  const services = [
-    {
-      icon: Palette,
-      title: 'Full Home Interior',
-      description: 'End-to-end luxury solutions from modular kitchens to designer living spaces.',
-      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop'
-    },
-    {
-      icon: Building2,
-      title: 'Infrastructure Solutions',
-      description: 'Robust planning and execution for large-scale industrial projects.',
-      image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=2000&auto=format&fit=crop'
-    },
-    {
-      icon: Ruler,
-      title: 'Architectural Planning',
-      description: 'Functional and innovative designs tailored to modern aesthetics.',
-      image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop'
-    },
-    {
-      icon: Hammer,
-      title: 'Fit-out & Fabrication',
-      description: 'Premium custom joinery and specialized metal work services.',
-      image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=2000&auto=format&fit=crop'
-    },
-    {
-      icon: ClipboardCheck,
-      title: 'Project Management',
-      description: 'Professional oversight to ensure timely delivery and quality.',
-      image: 'https://images.unsplash.com/photo-1531973576160-7125cd663d86?q=80&w=2000&auto=format&fit=crop'
-    }
-  ]
+  const [activeIndex, setActiveIndex] = useState(0)
 
   return (
-    <section id="services" className="section-padding bg-brand-cream relative overflow-hidden">
-      {/* Technical Grid Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(3,47,53,1) 1px, transparent 1px), linear-gradient(90deg, rgba(3,47,53,1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-      
-      <div className="container-premium relative z-10">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-20">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-4 mb-6">
-              <span className="h-px w-12 bg-brand-gold"></span>
-              <span className="text-[10px] font-black text-brand-gold uppercase tracking-[0.4em]">Our Core Capabilities</span>
-            </div>
-            <h2 className="text-brand-teal italic font-black text-5xl md:text-7xl">Holistic <span className="text-brand-gold not-italic">Execution.</span></h2>
+    <section id="services" className="py-24 bg-brand-cream relative overflow-hidden font-roboto">
+      {/* Subtle Grid Accent */}
+      <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(3,47,53,1) 1px, transparent 1px), linear-gradient(90deg, rgba(3,47,53,1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+        
+        {/* Section Header */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-20 border-b border-brand-teal/10 pb-10">
+          <div className="space-y-4">
+            <span className="text-[10px] font-black tracking-[0.4em] uppercase text-brand-gold block">
+              Luxury Divisions
+            </span>
+            <h2 className="text-5xl md:text-7xl font-black uppercase text-brand-teal tracking-tighter italic font-serif">
+              Timeless Creations
+            </h2>
           </div>
-          <p className="text-brand-teal/60 font-medium leading-relaxed max-w-sm italic">
-            "Delivering high-precision design and infrastructure across residential, commercial, and industrial sectors since 2023."
+          <p className="text-brand-teal/60 font-medium max-w-sm text-sm leading-relaxed text-left lg:text-right italic">
+            "Crafted for connoisseurs of luxury and fine living, transforming spaces into expressions of art."
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: index * 0.1 }}
-              className="group relative h-[500px] overflow-hidden shadow-2xl"
-            >
-              {/* Image Background */}
-              <img 
-                src={service.image} 
-                alt={service.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-teal via-brand-teal/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
-              
-              {/* Content Overlay */}
-              <div className="absolute inset-0 p-10 flex flex-col justify-end">
-                <div className="w-14 h-14 bg-brand-gold flex items-center justify-center text-brand-teal mb-6 transform -rotate-12 group-hover:rotate-0 transition-transform duration-500">
-                  <service.icon size={24} />
+        {/* Staggered Split-Screen Interactive Showcase */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-stretch">
+          
+          {/* Left Column: Numbered List of Divisions */}
+          <div className="lg:col-span-5 flex flex-col justify-center divide-y divide-brand-teal/10">
+            {COLLECTIONS.map((item, idx) => {
+              const isActive = idx === activeIndex
+              return (
+                <div
+                  key={item.title}
+                  onMouseEnter={() => setActiveIndex(idx)}
+                  onClick={() => setActiveIndex(idx)}
+                  className="py-6 cursor-pointer group transition-all duration-300 first:pt-0 last:pb-0"
+                >
+                  <div className="flex items-start gap-6">
+                    {/* Index Number */}
+                    <span className={`text-xl font-serif italic ${isActive ? 'text-brand-gold font-bold scale-110' : 'text-brand-teal/40 group-hover:text-brand-champagne'} transition-all duration-300`}>
+                      {item.num}
+                    </span>
+                    
+                    {/* Title & Subtitle */}
+                    <div className="space-y-2 flex-1">
+                      <h3 className={`text-xl md:text-2xl font-serif font-black uppercase tracking-tight transition-colors duration-300 ${isActive ? 'text-brand-gold' : 'text-brand-teal group-hover:text-brand-champagne'}`}>
+                        {item.title}
+                      </h3>
+                      
+                      {/* Expanded description on Active state with smooth Framer animation */}
+                      <motionFramer.div
+                        initial={false}
+                        animate={{ height: isActive ? 'auto' : 0, opacity: isActive ? 1 : 0 }}
+                        transition={{ duration: 0.4, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                      >
+                        <p className="text-brand-teal/70 text-xs md:text-sm leading-relaxed pt-2">
+                          {item.description}
+                        </p>
+                        
+                        {/* Direct Page Link */}
+                        <div className="pt-4 flex">
+                          <a
+                            href={`/page/${item.slug}`}
+                            className="inline-flex items-center gap-2 text-[10px] font-black tracking-[0.2em] uppercase text-brand-gold hover:text-brand-teal transition-colors"
+                          >
+                            <span>Explore Collection</span>
+                            <ArrowRight size={12} />
+                          </a>
+                        </div>
+                      </motionFramer.div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-tighter italic">
-                  {service.title}
-                </h3>
-                <p className="text-white/70 text-sm leading-relaxed max-w-xs transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                  {service.description}
-                </p>
-              </div>
+              )
+            })}
+          </div>
+
+          {/* Right Column: Dynamic Framed Preview Image */}
+          <div className="lg:col-span-7 flex items-center justify-center">
+            <div className="relative w-full aspect-[4/3] md:aspect-[16/10] bg-black overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.2)]">
               
-              {/* Corner Accent */}
-              <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-brand-gold m-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </motion.div>
-          ))}
+              {/* Dynamic Image Crossfade */}
+              <AnimatePresence mode="wait">
+                <motionFramer.div
+                  key={activeIndex}
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                  className="absolute inset-0 w-full h-full"
+                >
+                  <img
+                    src={COLLECTIONS[activeIndex].image}
+                    alt={COLLECTIONS[activeIndex].title}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Subtle dark tint */}
+                  <div className="absolute inset-0 bg-black/15"></div>
+                </motionFramer.div>
+              </AnimatePresence>
+
+              {/* Decorative Frame borders to emphasize luxury modular crafting */}
+              <div className="absolute inset-0 border border-white/10 m-6 pointer-events-none"></div>
+              <div className="absolute bottom-10 right-10 z-10 bg-brand-cream border border-brand-teal/5 py-2 px-4 shadow-lg select-none">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-teal">
+                  {COLLECTIONS[activeIndex].subtitle}
+                </span>
+              </div>
+
+            </div>
+          </div>
+
         </div>
 
-        {/* Legacy Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-20 bg-brand-teal p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-10"
-        >
-          <div className="relative z-10">
-            <h3 className="text-white text-3xl font-black mb-2 uppercase italic tracking-tighter">5 Years of <span className="text-brand-gold">On-Site Mastery.</span></h3>
-            <p className="text-brand-gold font-black tracking-[0.3em] uppercase text-[10px]">Serving Pan-India since 2023</p>
-          </div>
-          <a href="#contact" className="btn-gold shadow-2xl hover:scale-105 transition-transform z-10 whitespace-nowrap">
-            Schedule a Site Visit
+        {/* Global Action Link */}
+        <div className="text-center pt-16">
+          <a
+            href="#projects"
+            className="btn-gold !text-xs px-16 py-3.5 tracking-[0.25em]"
+          >
+            Explore Full Range
           </a>
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #D4AF37 0px, #D4AF37 1px, transparent 1px, transparent 10px)' }}></div>
-        </motion.div>
+        </div>
+
       </div>
     </section>
   )

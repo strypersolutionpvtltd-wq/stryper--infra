@@ -8,23 +8,23 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#062F33',
-          dark: '#051f22',
+          DEFAULT: '#050505', // Vittaazio Deep Charcoal
+          dark: '#000000',    // Vittaazio Pure Black
         },
         secondary: {
-          DEFAULT: '#0B3D40',
-          light: '#0d4a4d',
+          DEFAULT: '#0d0d0d', // Vittaazio alternate dark
+          light: '#121212',
         },
         gold: {
-          DEFAULT: '#D4AF37',
-          light: '#E5C878',
+          DEFAULT: '#ffcc33', // Vittaazio Yellow-Gold Accent
+          light: '#ffe066',
         },
         brand: {
           purple: '#7C3AED',
           magenta: '#C020A0',
-          dark: '#0A0A0A',
+          dark: '#0d0d0d',
         },
-        textGray: '#D9D9D9',
+        textGray: '#e5e5e5',
       },
       fontFamily: {
         montserrat: ['Poppins', 'sans-serif'],

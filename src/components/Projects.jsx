@@ -1,141 +1,100 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
+
+const SLIDES = [
+  {
+    category: 'Wall Panels',
+    title: 'Crafting Lifestyle',
+    description: 'Curated to complement modern living, each panel brings warmth, depth, and character to every room. Thoughtfully designed, it transforms plain walls into timeless expressions of lifestyle, elevating everyday spaces with elegance and intention.',
+    image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=2574&auto=format&fit=crop'
+  },
+  {
+    category: 'Wardrobes',
+    title: 'Crafting Reflections',
+    description: 'Designed to be more than simple storage. Each piece reflects thoughtful craftsmanship that combines elegance with practicality. From seamless finishes to intelligent organisation, every element is created to enhance daily living. The result is a refined space that mirrors both style and function effortlessly.',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2670&auto=format&fit=crop'
+  },
+  {
+    category: 'Hospitality',
+    title: 'Crafting Experiences',
+    description: 'Creating moments that linger long after the stay. From personalised service to thoughtful details, it’s the art of making every guest feel valued. Each interaction becomes a memory, each space a story, and every touchpoint an experience crafted with care, warmth, and authenticity.',
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2670&auto=format&fit=crop'
+  }
+]
 
 const Projects = () => {
-  const [activeCategory, setActiveCategory] = useState('All')
+  const [currentIndex, setCurrentIndex] = useState(0)
 
-  const categories = ['All', 'Residential', 'Commercial', 'Infrastructure']
-
-  const projects = [
-    {
-      title: 'Luxury Villa',
-      slug: 'luxury-villa',
-      location: 'Jaipur',
-      category: 'Residential',
-      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2553&auto=format&fit=crop'
-    },
-    {
-      title: 'Modern IT Office',
-      slug: 'modern-it-office',
-      location: 'Bangalore',
-      category: 'Commercial',
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2569&auto=format&fit=crop'
-    },
-    {
-      title: 'Heritage Hotel Fit-out',
-      slug: 'heritage-hotel-fit-out',
-      location: 'Udaipur',
-      category: 'Infrastructure',
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2670&auto=format&fit=crop'
-    },
-    {
-      title: 'Minimalist Apartment',
-      slug: 'minimalist-apartment',
-      location: 'Jaipur',
-      category: 'Residential',
-      image: 'https://images.unsplash.com/photo-1600210491892-03d54c0aaf87?q=80&w=2574&auto=format&fit=crop'
-    },
-    {
-      title: 'Premium Banquet Hall',
-      slug: 'premium-banquet-hall',
-      location: 'Jaipur',
-      category: 'Commercial',
-      image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2674&auto=format&fit=crop'
-    },
-    {
-      title: 'Industrial Plant Fit-out',
-      slug: 'industrial-plant-fit-out',
-      location: 'Neemrana',
-      category: 'Infrastructure',
-      image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2670&auto=format&fit=crop'
-    }
-  ]
-
-  const filteredProjects = activeCategory === 'All' 
-    ? projects 
-    : projects.filter(p => p.category === activeCategory)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % SLIDES.length)
+    }, 6000)
+    return () => clearInterval(timer)
+  }, [])
 
   return (
-    <section id="projects" className="py-24 bg-brand-offwhite relative overflow-hidden">
-      {/* Technical Grid Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(3,47,53,1) 1px, transparent 1px), linear-gradient(90deg, rgba(3,47,53,1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-      
-      <div className="container-premium relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8 border-b border-brand-teal/10 pb-12">
-          <div>
-            <span className="inline-block px-4 py-1 bg-brand-gold/10 text-brand-gold font-bold text-xs tracking-[0.3em] uppercase mb-4 border-l-2 border-brand-gold">
-              Portfolio
-            </span>
-            <h2 className="text-brand-teal italic font-black">Featured <span className="text-brand-gold not-italic">Works.</span></h2>
-          </div>
-          
-          <div className="flex flex-wrap gap-3">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-8 py-3 rounded-sm text-xs font-black tracking-widest uppercase transition-all duration-300 ${
-                  activeCategory === cat 
-                    ? 'bg-brand-teal text-brand-gold shadow-lg' 
-                    : 'bg-white text-brand-teal/50 hover:text-brand-teal'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project) => (
-              <motion.div
-                key={project.slug}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="group relative overflow-hidden rounded-[2rem] shadow-2xl cursor-pointer"
-              >
-                <Link to={`/project/${project.slug}`} className="block h-full w-full">
-                  <div className="aspect-[4/5] overflow-hidden">
-                    <img 
-                      src={project.image} 
-                      alt={project.title} 
-                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                    />
-                  </div>
-                  
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-teal via-brand-teal/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500">
-                    <div className="absolute bottom-0 left-0 p-10 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="h-px w-8 bg-brand-gold"></span>
-                        <p className="text-brand-gold font-bold text-xs uppercase tracking-[0.3em]">
-                          {project.category}
-                        </p>
-                      </div>
-                      <h3 className="text-white text-3xl font-black mb-4 leading-tight italic">{project.title}</h3>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-brand-offwhite/70 text-sm font-bold uppercase tracking-widest">
-                          <MapPin size={16} className="text-brand-gold" />
-                          {project.location}
-                        </div>
-                        <div className="w-12 h-12 bg-brand-gold rounded-full flex items-center justify-center text-brand-teal transform rotate-45 group-hover:rotate-0 transition-all duration-500">
-                          <ArrowRight size={24} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+    <section id="projects" className="relative w-full h-[85vh] bg-brand-navy overflow-hidden">
+      {/* Full width background image transitions */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5 }}
+          className="absolute inset-0 w-full h-full"
+        >
+          <img 
+            src={SLIDES[currentIndex].image} 
+            alt={SLIDES[currentIndex].title} 
+            className="w-full h-full object-cover scale-100"
+          />
+          {/* Vittaazio dark overlay */}
+          <div className="absolute inset-0 bg-black/60"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80"></div>
         </motion.div>
+      </AnimatePresence>
+
+      {/* Centered content overlay to match Vittaazio hpsec4-slider-list-data */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 max-w-4xl mx-auto z-10 text-white">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="space-y-6 md:space-y-8"
+          >
+            {/* Category */}
+            <p className="text-xs md:text-sm font-black tracking-[0.4em] uppercase text-brand-gold">
+              {SLIDES[currentIndex].category}
+            </p>
+            
+            {/* Main Title */}
+            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight italic font-serif text-white">
+              {SLIDES[currentIndex].title}
+            </h2>
+            
+            {/* Description */}
+            <p className="text-brand-cream/80 text-sm md:text-lg leading-relaxed max-w-2xl mx-auto font-medium">
+              {SLIDES[currentIndex].description}
+            </p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Pagination bullets to match Vittaazio */}
+      <div className="absolute inset-x-0 bottom-12 z-20 flex justify-center gap-3">
+        {SLIDES.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentIndex(idx)}
+            className={`w-3.5 h-3.5 rounded-full border border-black transition-all duration-300 ${
+              idx === currentIndex ? 'bg-brand-gold scale-110' : 'bg-white/60 hover:bg-white'
+            }`}
+          />
+        ))}
       </div>
     </section>
   )

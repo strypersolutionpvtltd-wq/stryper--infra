@@ -1,119 +1,111 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { CheckCircle2 } from 'lucide-react'
+import React, { useState } from 'react'
+import { Play, X } from 'lucide-react'
 
 const About = () => {
-  const values = [
-    'Bespoke Design Narrative',
-    'Premium Material Selection',
-    'Transparent Commercials',
-    'Agile Infrastructure Planning',
-    'Uncompromising Execution',
-    'Dedicated Project Custodian'
-  ]
+  const [isPlaying, setIsPlaying] = useState(false)
 
   return (
-    <section id="about" className="py-32 bg-brand-cream relative overflow-hidden">
-      {/* Technical Grid Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(3,47,53,1) 1px, transparent 1px), linear-gradient(90deg, rgba(3,47,53,1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-      
-      <div className="container-premium relative z-10">
-        <div className="grid lg:grid-cols-2 gap-24 items-center">
-          {/* Left - Narrative */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className="flex items-center gap-4 mb-8">
-              <span className="h-px w-12 bg-brand-gold"></span>
-              <span className="text-[10px] font-black text-brand-gold uppercase tracking-[0.4em]">Our Professional Legacy</span>
-            </div>
-            
-            <h2 className="text-brand-teal mb-10 leading-[1.1] font-black italic">
-              Where engineering meets <span className="text-brand-gold not-italic font-black">Luxury.</span>
+    <section id="about" className="py-24 bg-brand-cream relative overflow-hidden">
+      {/* Subtle Grid Background */}
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(3,47,53,1) 1px, transparent 1px), linear-gradient(90deg, rgba(3,47,53,1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          
+          {/* Left: Canvas Title */}
+          <div className="lg:col-span-3 text-center lg:text-right">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase text-brand-teal tracking-tighter leading-none italic font-serif">
+              A canvas <br className="hidden lg:block" /> of craft
             </h2>
+          </div>
+
+          {/* Center: Video Preview Container */}
+          <div className="lg:col-span-5 relative flex justify-center">
+            <div 
+              onClick={() => setIsPlaying(true)}
+              className="relative w-full max-w-[480px] aspect-[4/5] bg-black cursor-pointer group shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden"
+            >
+              {/* Vittaazio crafting preview placeholder image */}
+              <img 
+                src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=2000&auto=format&fit=crop" 
+                alt="Crafting Premium Interiors" 
+                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-80"
+              />
+              
+              {/* Subtle background overlay to pop the play button */}
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-all duration-300"></div>
+
+              {/* Centered Play Button */}
+              <div className="absolute bottom-10 left-10 w-16 h-16 bg-white/10 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-brand-gold group-hover:text-black transition-all duration-300 shadow-xl">
+                <Play size={24} fill="currentColor" className="ml-1" />
+              </div>
+
+              {/* Crafting Grid lines overlay (aesthetic) */}
+              <div className="absolute inset-0 border border-brand-gold/10 m-4 pointer-events-none"></div>
+            </div>
             
-            <p className="text-lg text-brand-teal/60 mb-10 leading-relaxed font-medium text-justify-organic">
-              Stryper Interior and Infra is built on a foundation of technical excellence and aesthetic precision. 
-              Since 2023, we have successfully managed over 100 projects across India, delivering 
-              end-to-end solutions that span from high-end residential fit-outs to complex industrial 
-              infrastructure.
+            {/* Ambient gold background decor layout like Vittaazio */}
+            <div className="absolute top-[-20px] left-[-20px] right-[20px] bottom-[20px] border border-brand-gold/10 -z-10 pointer-events-none"></div>
+          </div>
+
+          {/* Right: Narrative Description */}
+          <div className="lg:col-span-4 space-y-6">
+            <p className="text-xs font-black tracking-[0.3em] uppercase text-brand-champagne">
+              Crafting Experiences
             </p>
-
-            <div className="grid sm:grid-cols-2 gap-8 mb-12">
-              {values.map((value, index) => (
-                <div key={index} className="flex items-center gap-4 group">
-                  <div className="w-10 h-10 bg-brand-cream rounded-none flex items-center justify-center border border-brand-teal/5 group-hover:border-brand-gold/30 transition-all">
-                    <CheckCircle2 className="text-brand-gold" size={16} />
-                  </div>
-                  <span className="text-brand-teal font-black text-[10px] uppercase tracking-[0.2em]">{value}</span>
-                </div>
-              ))}
+            <div className="space-y-4 text-brand-teal/80 text-sm md:text-base leading-relaxed text-justify-organic">
+              <p>
+                At Stryper, spaces feel alive with quiet confidence and thoughtful care. Every creation is shaped with attention, intention, and a calm that lingers. We focus on crafting environments that feel personal, welcoming, and balanced, where every detail contributes to a sense of harmony.
+              </p>
+              <p>
+                True beauty for us is subtle and lived in. It is found in the moments when a space invites you to pause, breathe, and simply be. Each environment tells a story, reflecting skill, devotion, and care in ways that endure over time.
+              </p>
+              <p>
+                Stryper is more than a brand. It is a way of living with purpose, shaping spaces that carry personality, comfort, and timeless elegance, giving life to surroundings that feel both intimate and alive.
+              </p>
             </div>
 
-            {/* Metrics */}
-            <div className="flex flex-row flex-wrap items-center gap-8 sm:gap-20 border-t border-brand-teal/5 pt-12">
-              <div>
-                <h4 className="text-6xl font-black text-brand-teal italic tracking-tighter">3<span className="text-brand-gold not-italic">+</span></h4>
-                <p className="text-[10px] font-black text-brand-gold uppercase tracking-[0.4em] mt-3">Years Legacy</p>
-              </div>
-              <div>
-                <h4 className="text-6xl font-black text-brand-teal italic tracking-tighter">100<span className="text-brand-gold not-italic">+</span></h4>
-                <p className="text-[10px] font-black text-brand-gold uppercase tracking-[0.4em] mt-3">Projects Done</p>
-              </div>
+            {/* Custom arrow link to match Vittaazio */}
+            <div className="pt-6">
+              <a 
+                href="#services" 
+                className="group relative inline-flex items-center text-brand-champagne hover:text-brand-gold font-bold text-sm tracking-wider uppercase transition-colors"
+              >
+                <span>Know More</span>
+                {/* Arrow animation mimicking Vittaazio right-arrow */}
+                <span className="ml-4 w-12 h-[1px] bg-brand-champagne group-hover:bg-brand-gold relative transition-all duration-300">
+                  <span className="absolute right-0 top-[-3px] w-2 h-2 border-t border-r border-brand-champagne group-hover:border-brand-gold rotate-45"></span>
+                </span>
+              </a>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Right - Realistic Collage */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative"
-          >
-            <div className="grid grid-cols-2 gap-10">
-              <div className="space-y-10 pt-20">
-                <div className="aspect-[3/4] overflow-hidden shadow-2xl">
-                  <img
-                    src="https://images.unsplash.com/photo-1600121848594-d8644e57abab?q=80&w=2670&auto=format&fit=crop"
-                    alt="Execution Detail"
-                    className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
-                  />
-                </div>
-                <div className="aspect-square overflow-hidden shadow-2xl">
-                  <img
-                    src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2670&auto=format&fit=crop"
-                    alt="Premium Layout"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-              <div className="space-y-10">
-                <div className="aspect-[2/3] overflow-hidden shadow-2xl">
-                  <img
-                    src="https://images.unsplash.com/photo-1600210491892-03d54c0aaf87?q=80&w=2574&auto=format&fit=crop"
-                    alt="Luxury Interior"
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-1000"
-                  />
-                </div>
-                <div className="bg-brand-teal p-12 text-white shadow-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-brand-gold opacity-5 rotate-45 transform translate-x-16 -translate-y-16"></div>
-                  <p className="text-2xl font-black italic tracking-tight leading-tight relative z-10">
-                    "Craftsmanship is the language of excellence."
-                  </p>
-                  <div className="mt-8 h-1 w-12 bg-brand-gold"></div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Background Shape */}
-            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-brand-cream rounded-full blur-3xl opacity-50"></div>
-          </motion.div>
         </div>
       </div>
+
+      {/* Video Modal Overlay */}
+      {isPlaying && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+          <button 
+            onClick={() => setIsPlaying(false)}
+            className="absolute top-6 right-6 text-white hover:text-brand-gold transition-colors cursor-pointer"
+          >
+            <X size={36} />
+          </button>
+          
+          <div className="w-full max-w-4xl aspect-video bg-black overflow-hidden shadow-2xl relative">
+            {/* Embedded Vimeo/YouTube video for premium modular craftsmanship */}
+            <iframe 
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" 
+              title="Modular Furniture Craftsmanship"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

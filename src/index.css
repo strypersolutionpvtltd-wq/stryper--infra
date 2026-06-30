@@ -1,15 +1,17 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100..900;1,100..900&display=swap');
 
 @theme {
-  --color-brand-teal: #032F35;
-  --color-brand-navy: #042B30;
-  --color-brand-gold: #D4AF37;
-  --color-brand-champagne: #E5C878;
-  --color-brand-cream: #FDFBF7;
-  --color-brand-offwhite: #F8F6F0;
+  --color-brand-teal: #0d0d0d;      /* Vittaazio Deep Luxury Black/Charcoal */
+  --color-brand-navy: #000000;      /* Vittaazio Absolute Black */
+  --color-brand-gold: #ffcc33;      /* Vittaazio Vibrant Yellow-Gold */
+  --color-brand-champagne: #996633; /* Vittaazio Luxury Bronze-Gold */
+  --color-brand-cream: #F7F4EF;     /* Vittaazio signature warm off-white cream */
+  --color-brand-offwhite: #ffffff;  /* Vittaazio pure white */
   
   --font-roboto: "Product Sans", "Google Sans", sans-serif;
   --font-montserrat: "Poppins", sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
 }
 
 @layer base {
@@ -23,15 +25,15 @@
     font-family: var(--font-roboto);
     background-color: var(--color-brand-cream);
     background-image: 
-      radial-gradient(rgba(3, 47, 53, 0.05) 1px, transparent 1px),
-      radial-gradient(rgba(3, 47, 53, 0.05) 1px, transparent 1px);
+      radial-gradient(rgba(153, 102, 51, 0.03) 1px, transparent 1px),
+      radial-gradient(rgba(153, 102, 51, 0.03) 1px, transparent 1px);
     background-size: 40px 40px;
     background-position: 0 0, 20px 20px;
     @apply antialiased text-brand-teal leading-relaxed overflow-x-hidden;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-montserrat);
-    @apply font-black text-brand-teal leading-tight tracking-[0.04em];
+    font-family: var(--font-serif);
+    @apply font-black text-brand-teal leading-tight tracking-[0.02em];
   }
   h1 { @apply text-4xl md:text-6xl lg:text-7xl; }
   h2 { @apply text-3xl md:text-5xl lg:text-6xl; }
@@ -50,12 +52,33 @@
     @apply py-24 lg:py-32;
   }
   
+  /* Vittaazio Luxury Slide-Over Buttons */
   .btn-gold {
-    @apply px-6 py-3 md:px-10 md:py-4 bg-brand-gold text-brand-teal font-black text-[10px] md:text-xs tracking-[0.2em] rounded-none hover:bg-brand-teal hover:text-brand-gold transition-all duration-500 shadow-xl inline-flex items-center justify-center uppercase;
+    @apply relative inline-flex items-center justify-center border border-brand-gold text-brand-teal bg-transparent py-3.5 px-10 text-[10px] md:text-xs font-black tracking-[0.2em] uppercase overflow-hidden transition-colors duration-500 z-10 rounded-none cursor-pointer shadow-xl;
+  }
+  .btn-gold::before {
+    content: "";
+    @apply absolute top-0 -left-full w-full h-full bg-brand-gold -z-10 transition-[left] duration-500 ease-in-out;
+  }
+  .btn-gold:hover::before {
+    @apply left-0;
+  }
+  .btn-gold:hover {
+    @apply text-black border-brand-gold;
   }
   
   .btn-outline {
-    @apply px-6 py-3 md:px-10 md:py-4 bg-transparent text-brand-teal border-2 border-brand-teal font-black text-[10px] md:text-xs tracking-[0.2em] rounded-none hover:bg-brand-teal hover:text-white transition-all duration-500 inline-flex items-center justify-center uppercase;
+    @apply relative inline-flex items-center justify-center border border-white/30 text-white bg-transparent py-3.5 px-10 text-[10px] md:text-xs font-black tracking-[0.2em] uppercase overflow-hidden transition-colors duration-500 z-10 rounded-none cursor-pointer;
+  }
+  .btn-outline::before {
+    content: "";
+    @apply absolute top-0 -left-full w-full h-full bg-brand-gold -z-10 transition-[left] duration-500 ease-in-out;
+  }
+  .btn-outline:hover::before {
+    @apply left-0;
+  }
+  .btn-outline:hover {
+    @apply text-black border-brand-gold;
   }
   
   .card-premium {
@@ -69,11 +92,11 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #FDFBF7;
+  background: var(--color-brand-cream);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #032F35;
+  background: var(--color-brand-teal);
 }
 
 .text-justify-organic {

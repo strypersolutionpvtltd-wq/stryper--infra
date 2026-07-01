@@ -224,7 +224,7 @@ const DynamicPage = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 border-t border-brand-teal/10 pt-10">
-              <a href="tel:+919565310410" className="btn-outline flex items-center justify-center gap-2">
+              <a href="tel:+919565310410" className="btn-outline !text-brand-teal !border-brand-teal/30 hover:!border-brand-gold flex items-center justify-center gap-2">
                 <Phone size={14} /> Call Custodian
               </a>
               <Link to="/?scroll=contact" className="btn-gold flex items-center justify-center gap-2">

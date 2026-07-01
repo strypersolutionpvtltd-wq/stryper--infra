@@ -159,8 +159,8 @@ const Navbar = () => {
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-500 ${showSolidNav ? 'bg-brand-teal/95 backdrop-blur-xl shadow-lg py-3 border-b border-white/5' : 'bg-transparent py-5 border-b border-transparent'}`}>
-      {/* Centered container aligned with the rest of the site (max-w-7xl) to maintain grid alignment */}
-      <div className="max-w-7xl mx-auto w-full px-6 lg:px-12 flex justify-between items-center">
+      {/* Centered container with max-width 1536px to give logo and links more breathing room */}
+      <div className="max-w-[1536px] mx-auto w-full px-6 lg:px-12 flex justify-between items-center">
         <Link to="/" className="flex items-center group">
           <img 
             src={logo} 
@@ -170,8 +170,8 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Nav - xl breakpoint prevents crowding on smaller monitors */}
-        <div className="hidden xl:flex items-center gap-8">
-          <div className="flex items-center gap-6">
+        <div className="hidden xl:flex items-center gap-6 2xl:gap-8">
+          <div className="flex items-center gap-4 2xl:gap-6">
             {menuData.map((menu) => (
               <div key={menu.name} className="relative group py-2">
                 {menu.submenu ? (
@@ -257,7 +257,7 @@ const Navbar = () => {
           
           <div className="h-6 w-px bg-white/10"></div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 2xl:gap-6">
             <a href="tel:+919565310410" className="flex items-center gap-2 text-brand-cream hover:text-brand-gold transition-colors">
               <Phone size={14} className="text-brand-gold" />
               <span className="text-xs font-black tracking-widest uppercase">+91 9565310410</span>

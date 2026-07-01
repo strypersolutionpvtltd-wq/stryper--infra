@@ -71,10 +71,10 @@ const Contact = () => {
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="bg-black p-12 md:p-16 relative shadow-2xl overflow-hidden"
+              className="bg-black p-6 sm:p-10 md:p-16 relative shadow-2xl overflow-hidden"
             >
               {/* Form Corner Accents */}
-              <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-brand-gold m-8"></div>
+              <div className="absolute top-0 right-0 w-10 h-10 sm:w-16 sm:h-16 border-t-4 border-r-4 border-brand-gold m-4 sm:m-8"></div>
               
               {isSubmitted ? (
                 <div className="py-20 text-center relative z-10">
@@ -85,13 +85,13 @@ const Contact = () => {
                   <p className="text-brand-gold font-bold text-sm tracking-widest uppercase">Our team will reach out within 24 hours.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-10 relative z-10">
+                <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-10 relative z-10">
                   <div className="space-y-2">
                     <h3 className="text-4xl font-black text-white italic tracking-tighter">Project <span className="text-brand-gold not-italic">Brief.</span></h3>
                     <p className="text-[10px] font-black text-brand-gold uppercase tracking-[0.4em] opacity-60">Submit your site details</p>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                     <div className="group">
                       <label className="text-[10px] font-black text-brand-gold uppercase tracking-widest mb-2 block opacity-80 group-focus-within:opacity-100 transition-opacity">Client Name</label>
                       <input 

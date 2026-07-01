@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import logo from '../assets/logo.png'
 import { Phone, Mail, MapPin } from 'lucide-react'
+import chairmanImg from '../assets/screenshot-footer.png'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
@@ -23,7 +24,7 @@ const Footer = () => {
     <footer className="bg-brand-navy text-white pt-20 pb-8 border-t border-white/5 relative overflow-hidden font-roboto">
       
       {/* Footer Top Content */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 pb-16 border-b border-white/10 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 pb-16 border-b border-white/10 relative z-10">
         
         {/* Column 1: About Us */}
         <div className="space-y-4">
@@ -46,17 +47,17 @@ const Footer = () => {
             Subscribe to keep updated
           </h3>
           <form onSubmit={handleSubscribe} className="space-y-3">
-            <div className="flex items-center border border-white/20 bg-black/40 px-3 py-1 rounded-none">
+            <div className="flex flex-col sm:flex-row items-stretch border border-white/20 bg-black/40 p-1 sm:p-0 rounded-none">
               <input 
                 type="email" 
                 placeholder="your e-mail address" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-transparent border-none text-white text-sm py-2 focus:outline-none"
+                className="w-full bg-transparent border-none text-white text-sm py-2 px-3 focus:outline-none"
               />
               <button 
                 type="submit"
-                className="bg-brand-gold text-black font-black text-xs tracking-wider px-4 py-2 hover:bg-white hover:text-black transition-colors"
+                className="bg-brand-gold text-black font-black text-xs tracking-wider px-6 py-2.5 hover:bg-white hover:text-black transition-colors shrink-0 rounded-none"
               >
                 SUBSCRIBE
               </button>
@@ -105,6 +106,52 @@ const Footer = () => {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M22.23 0H1.77C.8 0 0 .77 0 1.72v20.56C0 23.23.8 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.72V1.72C24 .77 23.2 0 22.23 0zM7.12 20.45H3.56V9h3.56v11.45zM5.34 7.58c-1.14 0-2.06-.92-2.06-2.06 0-1.14.92-2.06 2.06-2.06 1.14 0 2.06.92 2.06 2.06 0 1.14-.92 2.06-2.06 2.06zm15.11 12.87h-3.56v-5.6c0-1.34-.03-3.05-1.86-3.05-1.86 0-2.14 1.45-2.14 2.95v5.7h-3.56V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29z"/>
               </svg>
+            </a>
+          </div>
+        </div>
+
+        {/* Column 4: Leadership */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-black tracking-[0.2em] uppercase text-brand-gold mb-6">
+            Leadership
+          </h3>
+          <div className="bg-white/5 border border-white/10 p-5 space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="relative shrink-0">
+                <img
+                  src={chairmanImg}
+                  alt="Kartikey Niranjan"
+                  className="w-12 h-12 rounded-full object-cover"
+                  style={{ border: '2px solid #ffcc33' }}
+                />
+                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-brand-gold flex items-center justify-center text-black">
+                  <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M5 1l1 2h2.2L6.6 4.4l.8 2.2L5 5.4 2.6 6.6l.8-2.2L1.8 3H4L5 1z" fill="currentColor"/></svg>
+                </span>
+              </div>
+              <div>
+                <p className="text-white font-black text-xs uppercase tracking-wider">Kartikey Niranjan</p>
+                <p className="text-brand-gold text-[9px] font-black uppercase tracking-widest mt-0.5">Chairman</p>
+                <p className="text-white/40 text-[8px] font-bold uppercase tracking-wider">Stryper Solution Pvt. Ltd.</p>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10 pt-3 space-y-1.5">
+              {['HR Management', 'Business Operations', 'Workforce Management', 'Strategic Planning'].map((skill) => (
+                <div key={skill} className="flex items-center gap-2">
+                  <span className="w-1 h-1 bg-brand-gold shrink-0" aria-hidden="true" />
+                  <span className="text-[9px] text-white/60 font-bold uppercase tracking-wider">{skill}</span>
+                </div>
+              ))}
+            </div>
+
+            <a
+              href="https://www.linkedin.com/company/stryper-solution-pvt-ltd/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-[9px] text-white/50 hover:text-brand-gold transition-colors font-bold uppercase tracking-wider"
+            >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0h.003z"/></svg>
+              LinkedIn Profile
             </a>
           </div>
         </div>

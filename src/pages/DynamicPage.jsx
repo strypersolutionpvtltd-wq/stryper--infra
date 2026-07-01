@@ -91,13 +91,12 @@ const PAGE_DATA = {
     features: ['Daily Site Coordination', 'BOM & Cost Control', 'Quality Audits & Checklists', 'Safety Protocol Management'],
     image: 'https://images.unsplash.com/photo-1531973576160-7125cd663d86?q=80&w=2000&auto=format&fit=crop'
   },
-  // Our Story
-  'leadership-team': {
-    title: 'Our Leadership Team',
-    subtitle: 'The visionary minds driving engineering and design excellence.',
-    description: 'Meet the executive team and senior architects leading Stryper\'s mission to deliver uncompromising infrastructure and luxury interiors across India.',
-    features: ['Architectural Directors', 'Technical Head Engineers', 'Dedicated PMC Lead managers', 'Quality Assurance team'],
-    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=2000&auto=format&fit=crop'
+  'project-gallery': {
+    title: 'Project Gallery',
+    subtitle: 'A curated showcase of our luxury interior and infrastructure marvels.',
+    description: 'Explore our portfolio of completed projects across India. From modern residential spaces to heavy industrial fabrication sites, we deliver perfection at every scale.',
+    features: ['Residential Masterpieces', 'Corporate & Commercial Hubs', 'PEB Industrial Structures', 'Hospitality & Luxury Resorts'],
+    image: 'https://images.unsplash.com/photo-1506806732259-39c2d0268443?q=80&w=2000&auto=format&fit=crop'
   },
   'client-testimonials-detail': {
     title: 'Client Testimonials',

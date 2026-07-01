@@ -113,7 +113,6 @@ const Navbar = () => {
       submenu: [
         { name: 'Our Vision', href: '#vision-mission' },
         { name: 'Design Ethos', href: '#about' },
-        { name: 'Our Leadership Team', slug: 'leadership-team' },
         { name: 'Client Testimonials', slug: 'client-testimonials-detail' }
       ]
     },
@@ -124,7 +123,7 @@ const Navbar = () => {
         { name: 'Residential Masterpieces', href: '#projects' },
         { name: 'Hospitality Projects', href: '#projects' },
         { name: 'Commercial Spaces', href: '#projects' },
-        { name: 'Project Gallery', href: '#projects' }
+        { name: 'Project Gallery', slug: 'project-gallery' }
       ]
     },
     {

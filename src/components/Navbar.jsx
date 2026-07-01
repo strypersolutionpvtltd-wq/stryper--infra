@@ -158,14 +158,14 @@ const Navbar = () => {
   const showSolidNav = !isHomePage || isScrolled
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-500 ${showSolidNav ? 'bg-brand-teal/95 backdrop-blur-xl shadow-lg py-1 border-b border-white/5' : 'bg-transparent py-4 border-b border-transparent'}`}>
-      {/* Full width container with large margins to separate logo and navigation links */}
-      <div className="w-full px-6 lg:px-12 2xl:px-16 flex justify-between items-center">
+    <nav className={`fixed w-full z-50 transition-all duration-500 ${showSolidNav ? 'bg-brand-teal/95 backdrop-blur-xl shadow-lg py-3 border-b border-white/5' : 'bg-transparent py-5 border-b border-transparent'}`}>
+      {/* Centered container aligned with the rest of the site (max-w-7xl) to maintain grid alignment */}
+      <div className="max-w-7xl mx-auto w-full px-6 lg:px-12 flex justify-between items-center">
         <Link to="/" className="flex items-center group">
           <img 
             src={logo} 
             alt="Stryper Logo" 
-            className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${showSolidNav ? 'h-8 sm:h-9 md:h-10' : 'h-10 sm:h-12 md:h-14'}`}
+            className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${showSolidNav ? 'h-[36px] md:h-[40px]' : 'h-[46px] md:h-[52px]'}`}
           />
         </Link>
 
@@ -183,7 +183,7 @@ const Navbar = () => {
                     
                     {menu.isMega ? (
                       /* Mega Menu for Collections */
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 hidden group-hover:grid grid-cols-3 gap-8 bg-brand-teal border border-brand-gold/10 p-8 w-[650px] shadow-2xl transition-all duration-300 backdrop-blur-xl">
+                      <div className="absolute top-full left-0 hidden group-hover:grid grid-cols-3 gap-8 bg-brand-teal border border-brand-gold/10 p-8 w-[650px] shadow-2xl transition-all duration-300 backdrop-blur-xl">
                         {menu.submenu.map((sub, sIdx) => (
                           <div key={sIdx} className="space-y-4">
                             <h4 className="text-[10px] font-bold text-brand-gold tracking-[0.2em] uppercase border-b border-brand-gold/20 pb-2">
@@ -265,7 +265,7 @@ const Navbar = () => {
             <a
               href="#contact"
               onClick={(e) => handleNavClick(e, '#contact')}
-              className="btn-gold !py-3 !px-6 !text-[9px] shadow-none"
+              className="btn-gold !text-brand-gold hover:!text-black !py-3 !px-6 !text-[10px] tracking-widest shadow-none"
             >
               Book a Visit
             </a>
@@ -370,8 +370,8 @@ const Navbar = () => {
             
             <a
               href="#contact"
-              onClick={(e) => handleNavClick(e, '#contact')}
-              className="btn-gold py-4 text-center"
+              onClick={(e) => { handleNavClick(e, '#contact'); setIsOpen(false); }}
+              className="btn-gold !text-brand-gold hover:!text-black py-4 text-center"
             >
               Book a Visit
             </a>

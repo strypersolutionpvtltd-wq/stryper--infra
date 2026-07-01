@@ -24,7 +24,7 @@ const Footer = () => {
     <footer className="bg-brand-navy text-white pt-20 pb-8 border-t border-white/5 relative overflow-hidden font-roboto">
       
       {/* Footer Top Content */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 pb-16 border-b border-white/10 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-12 lg:gap-16 pb-16 border-b border-white/10 relative z-10">
         
         {/* Column 1: About Us */}
         <div className="space-y-4">
@@ -33,9 +33,9 @@ const Footer = () => {
             <h2 className="text-xl font-black tracking-tight text-white uppercase italic font-serif">Stryper</h2>
           </div>
           <h3 className="text-xs font-black tracking-[0.2em] uppercase text-brand-gold">About us</h3>
-          <p className="text-white/60 text-sm leading-relaxed text-justify-organic">
+          <div className="text-white/60 text-sm leading-relaxed text-justify-organic">
             Stryper has been exhibiting an unparalleled passion, modernity, and innovation in the arena of modular furniture, premium interiors, and high-end infrastructure since 2023. Headquartered in Jaipur, we deliver pan-India.
-          </p>
+          </div>
           <a href="#about" className="text-brand-gold hover:text-white text-xs font-bold uppercase tracking-wider block pt-2">
             read more
           </a>
@@ -72,18 +72,18 @@ const Footer = () => {
             Get in Touch
           </h3>
           <div className="space-y-3 text-sm text-white/70">
-            <p className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
               <Phone size={14} className="text-brand-gold" />
-              <a href="tel:+919565310410" className="hover:text-brand-gold">+91 9565310410</a>
-            </p>
-            <p className="flex items-center gap-3">
+              <a href="tel:+919565310410" className="hover:text-brand-gold transition-colors">+91 9565310410</a>
+            </div>
+            <div className="flex items-center gap-3">
               <Mail size={14} className="text-brand-gold" />
-              <a href="mailto:gc@stryperinteriorandinfra.com" className="hover:text-brand-gold">gc@stryperinteriorandinfra.com</a>
-            </p>
-            <p className="flex items-start gap-3">
+              <a href="mailto:gc@stryperinteriorandinfra.com" className="hover:text-brand-gold transition-colors">gc@stryperinteriorandinfra.com</a>
+            </div>
+            <div className="flex items-start gap-3">
               <MapPin size={14} className="text-brand-gold mt-1 shrink-0" />
               <span>Jaipur, Rajasthan, India</span>
-            </p>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -129,9 +129,9 @@ const Footer = () => {
                 </span>
               </div>
               <div>
-                <p className="text-white font-black text-xs uppercase tracking-wider">Kartikey Niranjan</p>
-                <p className="text-brand-gold text-[9px] font-black uppercase tracking-widest mt-0.5">Chairman</p>
-                <p className="text-white/40 text-[8px] font-bold uppercase tracking-wider">Stryper Solution Pvt. Ltd.</p>
+                <div className="text-white font-black text-xs uppercase tracking-wider">Kartikey Niranjan</div>
+                <div className="text-brand-gold text-[9px] font-black uppercase tracking-widest mt-0.5">Chairman</div>
+                <div className="text-white/40 text-[8px] font-bold uppercase tracking-wider">Stryper Solution Pvt. Ltd.</div>
               </div>
             </div>
 
@@ -139,7 +139,7 @@ const Footer = () => {
               {['HR Management', 'Business Operations', 'Workforce Management', 'Strategic Planning'].map((skill) => (
                 <div key={skill} className="flex items-center gap-2">
                   <span className="w-1 h-1 bg-brand-gold shrink-0" aria-hidden="true" />
-                  <span className="text-[9px] text-white/60 font-bold uppercase tracking-wider">{skill}</span>
+                  <div className="text-[9px] text-white/60 font-bold uppercase tracking-wider">{skill}</div>
                 </div>
               ))}
             </div>
@@ -168,9 +168,9 @@ const Footer = () => {
           <a href="#" className="hover:text-white transition-colors">Sitemap</a>
           <a href="#" className="hover:text-white transition-colors">Terms & Conditions</a>
         </div>
-        <p className="text-xs text-white/30 tracking-[0.1em]">
+        <div className="text-xs text-white/30 tracking-[0.1em]">
           &copy; Stryper {currentYear}
-        </p>
+        </div>
       </div>
 
     </footer>

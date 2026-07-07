@@ -1,80 +1,28 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, MapPin, CheckCircle2 } from 'lucide-react'
-
-const projectData = {
-  'luxury-villa': {
-    title: 'Luxury Villa',
-    location: 'Jaipur',
-    category: 'Residential',
-    client: 'Private Owner',
-    area: '12,500 sq.ft.',
-    duration: '14 Months',
-    description: 'A complete architectural and interior transformation of a sprawling private estate, combining traditional Rajasthani elements with ultra-modern luxury amenities.',
-    features: ['Custom Italian Marble Flooring', 'Smart Home Automation', 'Bespoke Joinery', 'Landscape Integration'],
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2553&auto=format&fit=crop'
-  },
-  'modern-it-office': {
-    title: 'Modern IT Office',
-    location: 'Bangalore',
-    category: 'Commercial',
-    client: 'Global Tech Corp',
-    area: '45,000 sq.ft.',
-    duration: '8 Months',
-    description: 'A highly functional and agile workspace designed for a leading technology firm, fostering collaboration and productivity through open-plan layouts and ergonomic design.',
-    features: ['Acoustic Meeting Pods', 'Ergonomic Workstations', 'Biophilic Design Elements', 'Advanced HVAC Systems'],
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2569&auto=format&fit=crop'
-  },
-  'heritage-hotel-fit-out': {
-    title: 'Heritage Hotel Fit-out',
-    location: 'Udaipur',
-    category: 'Infrastructure',
-    client: 'Royal Heritage Group',
-    area: '80,000 sq.ft.',
-    duration: '22 Months',
-    description: 'A sensitive yet extensive restoration and fit-out of a historic property, ensuring modern structural integrity while preserving its royal heritage.',
-    features: ['Structural Reinforcement', 'Heritage Conservation', 'Luxury Suite Fit-outs', 'Custom Brass Fabrication'],
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2670&auto=format&fit=crop'
-  },
-  'minimalist-apartment': {
-    title: 'Minimalist Apartment',
-    location: 'Jaipur',
-    category: 'Residential',
-    client: 'Private Client',
-    area: '4,200 sq.ft.',
-    duration: '5 Months',
-    description: 'A sleek, minimalist approach to high-rise living. This project focused on maximizing natural light, clean lines, and integrated storage solutions.',
-    features: ['Concealed Storage', 'Minimalist Lighting', 'Neutral Color Palette', 'High-end Fixtures'],
-    image: 'https://images.unsplash.com/photo-1600210491892-03d54c0aaf87?q=80&w=2574&auto=format&fit=crop'
-  },
-  'premium-banquet-hall': {
-    title: 'Premium Banquet Hall',
-    location: 'Jaipur',
-    category: 'Commercial',
-    client: 'Nirala Crystal',
-    area: '25,000 sq.ft.',
-    duration: '9 Months',
-    description: 'A grand commercial space engineered for large-scale events, featuring advanced acoustic treatments, dynamic lighting rigs, and opulent finishes.',
-    features: ['Crystal Chandeliers', 'Acoustic Wall Paneling', 'Heavy-duty HVAC', 'Commercial Kitchen Setup'],
-    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2674&auto=format&fit=crop'
-  },
-  'industrial-plant-fit-out': {
-    title: 'Industrial Plant Fit-out',
-    location: 'Neemrana',
-    category: 'Infrastructure',
-    client: 'Manufacturing Solutions Inc.',
-    area: '120,000 sq.ft.',
-    duration: '18 Months',
-    description: 'A heavy-duty industrial infrastructure project requiring precise fabrication, specialized flooring, and robust structural planning.',
-    features: ['Epoxy Industrial Flooring', 'Heavy Machinery Foundations', 'Steel Fabrication', 'Safety Compliance Implementation'],
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2670&auto=format&fit=crop'
-  }
-}
+import { getProjects } from '../data/store'
 
 const ProjectDetail = () => {
   const { slug } = useParams()
-  const project = projectData[slug]
+  const [project, setProject] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const list = getProjects()
+    const found = list.find(p => p.slug === slug)
+    setProject(found)
+    setLoading(false)
+  }, [slug])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F2EDE4] flex items-center justify-center font-black text-xs uppercase tracking-widest">
+        Loading Details...
+      </div>
+    )
+  }
 
   if (!project) return <div className="min-h-screen flex items-center justify-center bg-[#F2EDE4] font-black text-2xl uppercase">Project not found</div>
 

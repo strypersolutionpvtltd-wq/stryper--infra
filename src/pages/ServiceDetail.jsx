@@ -10,7 +10,7 @@ const serviceData = {
     longDescription: 'Our interior design services go beyond aesthetics. We engineer environments that balance luxury with functionality. From modular kitchens to designer living spaces, every element is curated with precision.',
     features: ['Custom Furniture Design', 'Material Sourcing', '3D Visualization', 'Space Optimization'],
     icon: Palette,
-    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1618221381711-42ca8ab6e908?q=80&w=2000&auto=format&fit=crop'
   },
   'infrastructure': {
     title: 'Infrastructure Solutions',
@@ -42,7 +42,7 @@ const serviceData = {
     longDescription: 'Our project custodians ensure that every site is managed with technical precision. We handle timelines, vendor coordination, and quality audits to deliver a seamless handover.',
     features: ['Timeline Management', 'Quality Audits', 'Vendor Coordination', 'Cost Optimization'],
     icon: ClipboardCheck,
-    image: 'https://images.unsplash.com/photo-1531973576160-7125cd663d86?q=80&w=2000&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2000&auto=format&fit=crop'
   },
   'fabrication': {
     title: 'Industrial Fabrication',

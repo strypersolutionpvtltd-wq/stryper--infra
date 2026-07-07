@@ -1,13 +1,43 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Phone, Mail, MapPin, Send, CheckCircle2 } from 'lucide-react'
+import { addInquiry } from '../data/store'
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    service: 'Full Home Interior',
+    message: ''
+  })
   const [isSubmitted, setIsSubmitted] = useState(false)
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    addInquiry({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      service: formData.service,
+      message: formData.message || 'Client initiated a direct consultation query.'
+    })
     setIsSubmitted(true)
+    setFormData({
+      name: '',
+      phone: '',
+      email: '',
+      service: 'Full Home Interior',
+      message: ''
+    })
     setTimeout(() => setIsSubmitted(false), 5000)
   }
 
@@ -74,7 +104,7 @@ const Contact = () => {
               className="bg-black p-6 sm:p-10 md:p-16 relative shadow-2xl overflow-hidden"
             >
               {/* Form Corner Accents */}
-              <div className="absolute top-0 right-0 w-10 h-10 sm:w-16 sm:h-16 border-t-4 border-r-4 border-brand-gold m-4 sm:m-8"></div>
+              <div className="absolute top-0 right-0 w-10 h-10 sm:w-16 sm:h-16 border-t-4 border-r-4 border-brand-gold m-4 sm:m-8 pointer-events-none"></div>
               
               {isSubmitted ? (
                 <div className="py-20 text-center relative z-10">
@@ -96,6 +126,9 @@ const Contact = () => {
                       <label className="text-[10px] font-black text-brand-gold uppercase tracking-widest mb-2 block opacity-80 group-focus-within:opacity-100 transition-opacity">Client Name</label>
                       <input 
                         type="text" 
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
                         required
                         placeholder="Yashika Kanwar" 
                         className="w-full px-0 py-3 bg-transparent border-b border-white/20 focus:border-brand-gold transition-all outline-none font-bold text-white placeholder:text-white/50"
@@ -105,6 +138,9 @@ const Contact = () => {
                       <label className="text-[10px] font-black text-brand-gold uppercase tracking-widest mb-2 block opacity-80 group-focus-within:opacity-100 transition-opacity">Contact Number</label>
                       <input 
                         type="tel" 
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
                         required
                         placeholder="+91 00000 00000" 
                         className="w-full px-0 py-3 bg-transparent border-b border-white/20 focus:border-brand-gold transition-all outline-none font-bold text-white placeholder:text-white/50"
@@ -116,6 +152,9 @@ const Contact = () => {
                     <label className="text-[10px] font-black text-brand-gold uppercase tracking-widest mb-2 block opacity-80 group-focus-within:opacity-100 transition-opacity">Email Address</label>
                     <input 
                       type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
                       required
                       placeholder="client@project.com" 
                       className="w-full px-0 py-3 bg-transparent border-b border-white/20 focus:border-brand-gold transition-all outline-none font-bold text-white placeholder:text-white/50"
@@ -124,18 +163,35 @@ const Contact = () => {
 
                   <div className="group">
                     <label className="text-[10px] font-black text-brand-gold uppercase tracking-widest mb-2 block opacity-80 group-focus-within:opacity-100 transition-opacity">Service Required</label>
-                    <select className="w-full px-0 py-3 bg-transparent border-b border-white/20 focus:border-brand-gold transition-all outline-none font-bold text-white appearance-none cursor-pointer">
-                      <option className="bg-black">Full Home Interior</option>
-                      <option className="bg-black">Infrastructure Solution</option>
-                      <option className="bg-black">Architectural Planning</option>
-                      <option className="bg-black">Commercial Fit-out</option>
-                      <option className="bg-black">Industrial Fabrication</option>
+                    <select 
+                      name="service"
+                      value={formData.service}
+                      onChange={handleChange}
+                      className="w-full px-0 py-3 bg-transparent border-b border-white/20 focus:border-brand-gold transition-all outline-none font-bold text-white cursor-pointer"
+                    >
+                      <option className="bg-black" value="Full Home Interior">Full Home Interior</option>
+                      <option className="bg-black" value="Infrastructure Solution">Infrastructure Solution</option>
+                      <option className="bg-black" value="Architectural Planning">Architectural Planning</option>
+                      <option className="bg-black" value="Commercial Fit-out">Commercial Fit-out</option>
+                      <option className="bg-black" value="Industrial Fabrication">Industrial Fabrication</option>
                     </select>
+                  </div>
+
+                  <div className="group">
+                    <label className="text-[10px] font-black text-brand-gold uppercase tracking-widest mb-2 block opacity-80 group-focus-within:opacity-100 transition-opacity">Message / Scope</label>
+                    <textarea 
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Describe your project scope..."
+                      rows="2"
+                      className="w-full px-0 py-3 bg-transparent border-b border-white/20 focus:border-brand-gold transition-all outline-none font-bold text-white placeholder:text-white/50 resize-none"
+                    />
                   </div>
 
                   <button 
                     type="submit" 
-                    className="w-full bg-brand-gold text-black font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm py-4 md:py-6 shadow-2xl hover:bg-white transition-colors flex items-center justify-center gap-4"
+                    className="w-full bg-brand-gold text-black font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm py-4 md:py-6 shadow-2xl hover:bg-white transition-colors flex items-center justify-center gap-4 cursor-pointer"
                   >
                     Initiate Consultation <Send size={18} />
                   </button>

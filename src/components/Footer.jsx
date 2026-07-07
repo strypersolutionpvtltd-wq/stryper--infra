@@ -30,7 +30,6 @@ const Footer = () => {
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-6">
             <img src={logo} alt="Stryper" className="h-8 w-auto object-contain" />
-            <h2 className="text-xl font-black tracking-tight text-white uppercase italic font-serif">Stryper</h2>
           </div>
           <h3 className="text-xs font-black tracking-[0.2em] uppercase text-brand-gold">About us</h3>
           <div className="text-white/60 text-sm leading-relaxed text-justify-organic">

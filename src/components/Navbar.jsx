@@ -2,14 +2,28 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 import logo from '../assets/logo.png'
+import { getNotifications } from '../data/store'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [expandedMenu, setExpandedMenu] = useState(null)
+  const [unreadCount, setUnreadCount] = useState(0)
   
   const navigate = useNavigate()
   const location = useLocation()
+
+  // Track unread notifications
+  const updateNotifications = () => {
+    const list = getNotifications()
+    setUnreadCount(list.filter(n => !n.read).length)
+  }
+
+  useEffect(() => {
+    updateNotifications()
+    window.addEventListener('stryper_notifications_updated', updateNotifications)
+    return () => window.removeEventListener('stryper_notifications_updated', updateNotifications)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -120,10 +134,10 @@ const Navbar = () => {
       name: 'Our Projects',
       href: '#',
       submenu: [
-        { name: 'Residential Masterpieces', href: '#projects' },
-        { name: 'Hospitality Projects', href: '#projects' },
-        { name: 'Commercial Spaces', href: '#projects' },
-        { name: 'Project Gallery', slug: 'project-gallery' }
+        { name: 'Residential Masterpieces', path: '/project-gallery?category=residential' },
+        { name: 'Hospitality Projects', path: '/project-gallery?category=hospitality' },
+        { name: 'Commercial Spaces', path: '/project-gallery?category=commercial' },
+        { name: 'Project Gallery', path: '/project-gallery' }
       ]
     },
     {
@@ -139,8 +153,8 @@ const Navbar = () => {
       name: 'Blogs & Media',
       href: '#',
       submenu: [
-        { name: 'Latest Blogs', slug: 'latest-blogs' },
-        { name: 'Awards & Recognition', slug: 'awards-recognition' }
+        { name: 'Latest Blogs', path: '/blogs' },
+        { name: 'Awards & Recognition', path: '/awards-recognition' }
       ]
     },
     {
@@ -148,7 +162,8 @@ const Navbar = () => {
       href: '#contact',
       submenu: [
         { name: 'Inquiry Form', slug: 'inquiry-form-detail' },
-        { name: 'Work with Us', slug: 'work-with-us' }
+        { name: 'Work with Us', path: '/work-with-us' },
+        { name: 'Admin Dashboard', path: '/admin', showBadge: true }
       ]
     }
   ]
@@ -191,7 +206,14 @@ const Navbar = () => {
                             <ul className="space-y-2">
                               {sub.items.map((item, iIdx) => (
                                 <li key={iIdx}>
-                                  {item.slug ? (
+                                  {item.path ? (
+                                    <Link
+                                      to={item.path}
+                                      className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors block py-1"
+                                    >
+                                      {item.name}
+                                    </Link>
+                                  ) : item.slug ? (
                                     <Link
                                       to={`/page/${item.slug}`}
                                       className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors block py-1"
@@ -219,7 +241,17 @@ const Navbar = () => {
                         <ul className="space-y-1">
                           {menu.submenu.map((item, idx) => (
                             <li key={idx}>
-                              {item.slug ? (
+                              {item.path ? (
+                                <Link
+                                  to={item.path}
+                                  className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors flex items-center justify-between px-6 py-2 hover:bg-brand-navy"
+                                >
+                                  <span>{item.name}</span>
+                                  {item.showBadge && unreadCount > 0 && (
+                                    <span className="w-3.5 h-3.5 bg-brand-gold text-black rounded-full flex items-center justify-center text-[7px] font-black">{unreadCount}</span>
+                                  )}
+                                </Link>
+                              ) : item.slug ? (
                                 <Link
                                   to={`/page/${item.slug}`}
                                   className="text-[11px] font-medium text-brand-cream/70 hover:text-brand-gold transition-colors block px-6 py-2 hover:bg-brand-navy"
@@ -300,49 +332,71 @@ const Navbar = () => {
                             <div key={sIdx} className="space-y-1 py-1">
                               <span className="text-[10px] font-bold text-brand-gold uppercase tracking-wider block opacity-80">{sub.category}</span>
                               {sub.items.map((item, iIdx) => (
-                                item.slug ? (
-                                  <Link
-                                    key={iIdx}
-                                    to={`/page/${item.slug}`}
-                                    onClick={() => setIsOpen(false)}
-                                    className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1 pl-2"
-                                  >
-                                    {item.name}
-                                  </Link>
-                                ) : (
-                                  <a
-                                    key={iIdx}
-                                    href={item.href}
-                                    onClick={(e) => { handleNavClick(e, item.href); setIsOpen(false); }}
-                                    className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1 pl-2"
-                                  >
-                                    {item.name}
-                                  </a>
-                                )
+                                <li key={iIdx}>
+                                  {item.path ? (
+                                    <Link
+                                      to={item.path}
+                                      onClick={() => setIsOpen(false)}
+                                      className="text-[11px] text-brand-cream/70 hover:text-brand-gold flex items-center justify-between py-1 pl-2 pr-4"
+                                    >
+                                      <span>{item.name}</span>
+                                      {item.showBadge && unreadCount > 0 && (
+                                        <span className="w-3.5 h-3.5 bg-brand-gold text-black rounded-full flex items-center justify-center text-[7px] font-black">{unreadCount}</span>
+                                      )}
+                                    </Link>
+                                  ) : item.slug ? (
+                                    <Link
+                                      to={`/page/${item.slug}`}
+                                      onClick={() => setIsOpen(false)}
+                                      className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1 pl-2"
+                                    >
+                                      {item.name}
+                                    </Link>
+                                  ) : (
+                                    <a
+                                      href={item.href}
+                                      onClick={(e) => { handleNavClick(e, item.href); setIsOpen(false); }}
+                                      className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1 pl-2"
+                                    >
+                                      {item.name}
+                                    </a>
+                                  )}
+                                </li>
                               ))}
                             </div>
                           ))
                         ) : (
                           menu.submenu.map((item, idx) => (
-                            item.slug ? (
-                              <Link
-                                key={idx}
-                                to={`/page/${item.slug}`}
-                                onClick={() => setIsOpen(false)}
-                                className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1"
-                              >
-                                {item.name}
-                              </Link>
-                            ) : (
-                              <a
-                                key={idx}
-                                href={item.href}
-                                onClick={(e) => { handleNavClick(e, item.href); setIsOpen(false); }}
-                                className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1"
-                              >
-                                {item.name}
-                              </a>
-                            )
+                            <li key={idx} className="list-none">
+                              {item.path ? (
+                                <Link
+                                  to={item.path}
+                                  onClick={() => setIsOpen(false)}
+                                  className="text-[11px] text-brand-cream/70 hover:text-brand-gold flex items-center justify-between py-1"
+                                >
+                                  <span>{item.name}</span>
+                                  {item.showBadge && unreadCount > 0 && (
+                                    <span className="w-3.5 h-3.5 bg-brand-gold text-black rounded-full flex items-center justify-center text-[7px] font-black">{unreadCount}</span>
+                                  )}
+                                </Link>
+                              ) : item.slug ? (
+                                <Link
+                                  to={`/page/${item.slug}`}
+                                  onClick={() => setIsOpen(false)}
+                                  className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1"
+                                >
+                                  {item.name}
+                                </Link>
+                              ) : (
+                                <a
+                                  href={item.href}
+                                  onClick={(e) => { handleNavClick(e, item.href); setIsOpen(false); }}
+                                  className="text-[11px] text-brand-cream/70 hover:text-brand-gold block py-1"
+                                >
+                                  {item.name}
+                                </a>
+                              )}
+                            </li>
                           ))
                         )}
                       </div>

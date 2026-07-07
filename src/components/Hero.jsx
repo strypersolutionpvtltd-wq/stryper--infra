@@ -4,22 +4,22 @@ import { motion, AnimatePresence } from 'framer-motion'
 const SLIDES = [
   {
     title: 'Artistry Meets Art',
-    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=2670&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2670&auto=format&fit=crop',
     link: '#services'
   },
   {
     title: 'Designed to Welcome',
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2670&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=2670&auto=format&fit=crop',
     link: '#services'
   },
   {
     title: 'Built for Brilliance',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2670&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=2670&auto=format&fit=crop',
     link: '#services'
   },
   {
     title: 'Designs That Live With You',
-    image: 'https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=2000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2670&auto=format&fit=crop',
     link: '#services'
   }
 ]

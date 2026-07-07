@@ -1,31 +1,14 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Star, Quote } from 'lucide-react'
+import { getTestimonials } from '../data/store'
 
 const Testimonials = () => {
-  const testimonials = [
-    {
-      name: 'Vikram Malhotra',
-      role: 'CEO, Malhotra Infra',
-      text: 'Stryper handled our corporate office fit-out in Mumbai with extreme professionalism. Their site execution is unmatched in the industry.',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&h=200&auto=format&fit=crop',
-      rating: 5
-    },
-    {
-      name: 'Ananya Iyer',
-      role: 'Principal Architect, AI Design',
-      text: 'Collaborating with Stryper on luxury residential projects in Bangalore has been a pleasure. Their attention to material quality is top-tier.',
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&h=200&auto=format&fit=crop',
-      rating: 5
-    },
-    {
-      name: 'Siddharth Saxena',
-      role: 'MD, Saxena Hospitality',
-      text: 'The infrastructure execution for our resort in Alibaug was delivered ahead of schedule. Truly a partner you can trust for large-scale sites.',
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&h=200&auto=format&fit=crop',
-      rating: 5
-    }
-  ]
+  const [testimonials, setTestimonials] = useState([])
+
+  useEffect(() => {
+    setTestimonials(getTestimonials())
+  }, [])
 
   return (
     <section className="py-24 bg-brand-cream/30 relative overflow-hidden">

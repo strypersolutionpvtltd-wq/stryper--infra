@@ -32,7 +32,7 @@ const COLLECTIONS = [
     title: 'Hospitality Fit-Outs',
     subtitle: 'Immersive Welcomes',
     description: 'Bespoke lounge, lobby, and suite furnishings engineered to deliver high-end international guest experiences.',
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2670&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2670&auto=format&fit=crop',
     slug: 'hotel-resorts-fit-out'
   },
   {

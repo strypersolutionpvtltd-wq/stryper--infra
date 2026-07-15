@@ -7,11 +7,19 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { 
-  getProjects, addProject, 
-  getBlogs, addBlog, 
+  getProjects, addProject, deleteProject,
+  getBlogs, addBlog, deleteBlog,
+  getTestimonials, addTestimonial, deleteTestimonial,
   getInquiries, getCareers, 
   getNotifications, markNotificationsAsRead, clearNotifications,
-  getTrafficStats
+  getTrafficStats,
+  getAdminPassword, updateAdminPassword,
+  getSiteSettings, updateSiteSettings,
+  loginAdminBackend, changeAdminPasswordBackend,
+  fetchStatsFromBackend, fetchCareersFromBackend,
+  deleteInquiryBackend, updateInquiryStatusBackend,
+  deleteCareerBackend, updateCareerStatusBackend,
+  uploadImageToBackend
 } from '../data/store'
 
 const WhatsAppIcon = ({ size = 12, className }) => (
@@ -36,19 +44,29 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const [projects, setProjects] = useState([])
   const [blogs, setBlogs] = useState([])
+  const [testimonials, setTestimonials] = useState([])
   const [inquiries, setInquiries] = useState([])
   const [careers, setCareers] = useState([])
   const [notifications, setNotifications] = useState([])
   const [toast, setToast] = useState(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault()
-    if (password === 'infra@@2026') {
+    const backendResult = await loginAdminBackend(password)
+    if (backendResult.success) {
+      setIsAuthenticated(true)
+      sessionStorage.setItem('stryper_admin_authenticated', 'true')
+      setPasswordError('')
+      return
+    }
+
+    if (password === getAdminPassword()) {
       setIsAuthenticated(true)
       sessionStorage.setItem('stryper_admin_authenticated', 'true')
       setPasswordError('')
     } else {
-      setPasswordError('Invalid Password. Please try again.')
+      setPasswordError(backendResult.message || 'Invalid Password. Please try again.')
     }
   }
 
@@ -79,19 +97,60 @@ const Admin = () => {
   const [blogDragActive, setBlogDragActive] = useState(false)
   const blogFileInputRef = useRef(null)
 
+  // Testimonial Form State
+  const [testimonialForm, setTestimonialForm] = useState({
+    name: '',
+    role: '',
+    text: '',
+    rating: 5,
+    image: ''
+  })
+
+  // Settings Form State
+  const [settingsForm, setSettingsForm] = useState({
+    phone: '',
+    email: '',
+    address: '',
+    whatsapp: '',
+    est: '',
+    website: ''
+  })
+
+  const [currentPasswordVal, setCurrentPasswordVal] = useState('')
+  const [newPasswordVal, setNewPasswordVal] = useState('')
+  const [confirmPasswordVal, setConfirmPasswordVal] = useState('')
+
   // Detail Modal State
   const [selectedInquiry, setSelectedInquiry] = useState(null)
   const [selectedCareer, setSelectedCareer] = useState(null)
   const [traffic, setTraffic] = useState({ visitors: 114, pageviews: 254 })
 
   // Load store data
-  const loadData = () => {
-    setProjects(getProjects())
-    setBlogs(getBlogs())
-    setInquiries(getInquiries())
-    setCareers(getCareers())
+  const loadData = async () => {
+    setProjects(await getProjects())
+    setBlogs(await getBlogs())
+    setTestimonials(await getTestimonials())
+    setInquiries(await getInquiries())
     setNotifications(getNotifications())
-    setTraffic(getTrafficStats())
+    setSettingsForm(await getSiteSettings())
+
+    const backendStats = await fetchStatsFromBackend()
+    if (backendStats) {
+      setTraffic({
+        visitors: backendStats.totalVisits || 116,
+        pageviews: backendStats.totalPageViews || 293
+      })
+    } else {
+      setTraffic(getTrafficStats())
+    }
+
+    const backendCareers = await fetchCareersFromBackend()
+    if (backendCareers && backendCareers.length > 0) {
+      setCareers(backendCareers)
+    } else {
+      const fallbackCareers = await getCareers()
+      setCareers(Array.isArray(fallbackCareers) ? fallbackCareers : [])
+    }
   }
 
   useEffect(() => {
@@ -110,20 +169,25 @@ const Admin = () => {
     return () => window.removeEventListener('stryper_notifications_updated', handleUpdates)
   }, [])
 
-  const showToast = (message) => {
-    setToast(message)
-    setTimeout(() => setToast(null), 5500)
+  const showToast = (message, action = null) => {
+    setToast(action ? { message, ...action } : message)
+    setTimeout(() => setToast(null), 7000)
   }
 
   // Handle Drag-and-drop for Project image
-  const handleProjFileChange = (e) => {
+  const handleProjFileChange = async (e) => {
     const file = e.target.files[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setProjectImage(event.target.result)
+      setIsUploadingImage(true)
+      const url = await uploadImageToBackend(file)
+      if (url) {
+        setProjectImage(url)
+      } else {
+        const reader = new FileReader()
+        reader.onload = (event) => setProjectImage(event.target.result)
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
+      setIsUploadingImage(false)
     }
   }
 
@@ -134,29 +198,39 @@ const Admin = () => {
     else if (e.type === 'dragleave') setProjDragActive(false)
   }
 
-  const handleProjDrop = (e) => {
+  const handleProjDrop = async (e) => {
     e.preventDefault()
     e.stopPropagation()
     setProjDragActive(false)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0]
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setProjectImage(event.target.result)
+      setIsUploadingImage(true)
+      const url = await uploadImageToBackend(file)
+      if (url) {
+        setProjectImage(url)
+      } else {
+        const reader = new FileReader()
+        reader.onload = (event) => setProjectImage(event.target.result)
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
+      setIsUploadingImage(false)
     }
   }
 
   // Handle Drag-and-drop for Blog image
-  const handleBlogFileChange = (e) => {
+  const handleBlogFileChange = async (e) => {
     const file = e.target.files[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setBlogImage(event.target.result)
+      setIsUploadingImage(true)
+      const url = await uploadImageToBackend(file)
+      if (url) {
+        setBlogImage(url)
+      } else {
+        const reader = new FileReader()
+        reader.onload = (event) => setBlogImage(event.target.result)
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
+      setIsUploadingImage(false)
     }
   }
 
@@ -167,22 +241,27 @@ const Admin = () => {
     else if (e.type === 'dragleave') setBlogDragActive(false)
   }
 
-  const handleBlogDrop = (e) => {
+  const handleBlogDrop = async (e) => {
     e.preventDefault()
     e.stopPropagation()
     setBlogDragActive(false)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0]
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setBlogImage(event.target.result)
+      setIsUploadingImage(true)
+      const url = await uploadImageToBackend(file)
+      if (url) {
+        setBlogImage(url)
+      } else {
+        const reader = new FileReader()
+        reader.onload = (event) => setBlogImage(event.target.result)
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
+      setIsUploadingImage(false)
     }
   }
 
   // Form Submissions
-  const handleProjectSubmit = (e) => {
+  const handleProjectSubmit = async (e) => {
     e.preventDefault()
     if (!projectImage) {
       alert('Please upload/drop an image for the project.')
@@ -194,7 +273,7 @@ const Admin = () => {
       .map(item => item.trim())
       .filter(item => item.length > 0)
 
-    addProject({
+    await addProject({
       title: projectForm.title,
       category: projectForm.category,
       location: projectForm.location,
@@ -205,6 +284,9 @@ const Admin = () => {
       features: featureList.length > 0 ? featureList : ['Premium Site Planning', 'High-end Materials'],
       image: projectImage
     })
+
+    const addedTitle = projectForm.title
+    const projectSlug = addedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
     setProjectForm({
       title: '',
@@ -218,14 +300,19 @@ const Admin = () => {
     })
     setProjectImage(null)
     loadData()
-    showToast(`Project "${projectForm.title}" has been successfully added to Stryper Gallery!`)
+    showToast(`Project "${addedTitle}" has been successfully added to Stryper Gallery!`, {
+      actionUrl: `/project/${projectSlug}`,
+      actionLabel: 'View Live'
+    })
   }
 
-  const handleBlogSubmit = (e) => {
+  const handleBlogSubmit = async (e) => {
     e.preventDefault()
     const defaultImg = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2000'
+    const addedTitle = blogForm.title
+    const blogSlug = addedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     
-    addBlog({
+    await addBlog({
       title: blogForm.title,
       subtitle: blogForm.subtitle,
       category: blogForm.category,
@@ -243,20 +330,95 @@ const Admin = () => {
     })
     setBlogImage(null)
     loadData()
-    showToast(`Blog post "${blogForm.title}" published!`)
+    showToast(`Blog post "${addedTitle}" published!`, {
+      actionUrl: `/blogs?slug=${blogSlug}`,
+      actionLabel: 'View Live'
+    })
   }
 
-  // Delete handlers (modifies localStorage directly)
-  const deleteInquiry = (id) => {
-    const list = inquiries.filter(item => item.id !== id)
-    localStorage.setItem('stryper_inquiries', JSON.stringify(list))
+  // Delete handlers
+  const deleteInquiry = async (id) => {
+    await deleteInquiryBackend(id)
     loadData()
+    showToast('Inquiry deleted')
   }
 
-  const deleteCareer = (id) => {
-    const list = careers.filter(item => item.id !== id)
-    localStorage.setItem('stryper_careers', JSON.stringify(list))
+  const deleteCareer = async (id) => {
+    await deleteCareerBackend(id)
     loadData()
+    showToast('Career application deleted')
+  }
+
+  const handleDeleteProject = async (slugOrId) => {
+    await deleteProject(slugOrId)
+    loadData()
+    showToast('Project deleted successfully!')
+  }
+
+  const handleDeleteBlog = async (slugOrId) => {
+    await deleteBlog(slugOrId)
+    loadData()
+    showToast('Blog post deleted successfully!')
+  }
+
+  const handleDeleteTestimonial = async (idOrName) => {
+    await deleteTestimonial(idOrName)
+    loadData()
+    showToast('Testimonial deleted successfully!')
+  }
+
+  const handleTestimonialSubmit = async (e) => {
+    e.preventDefault()
+    const defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&h=200'
+    await addTestimonial({
+      name: testimonialForm.name,
+      role: testimonialForm.role,
+      text: testimonialForm.text,
+      rating: parseInt(testimonialForm.rating, 10),
+      image: testimonialForm.image || defaultAvatar
+    })
+    setTestimonialForm({ name: '', role: '', text: '', rating: 5, image: '' })
+    loadData()
+    showToast(`Review from "${testimonialForm.name}" has been published!`)
+  }
+
+  const handleSettingsSubmit = async (e) => {
+    e.preventDefault()
+    await updateSiteSettings(settingsForm)
+    loadData()
+    showToast('Site settings updated successfully!')
+  }
+
+  const handlePasswordChangeSubmit = async (e) => {
+    e.preventDefault()
+    if (newPasswordVal !== confirmPasswordVal) {
+      alert('Passwords do not match!')
+      return
+    }
+    if (newPasswordVal.length < 6) {
+      alert('Password must be at least 6 characters long!')
+      return
+    }
+
+    const backendResult = await changeAdminPasswordBackend(currentPasswordVal, newPasswordVal)
+    if (backendResult.success) {
+      updateAdminPassword(newPasswordVal)
+      setCurrentPasswordVal('')
+      setNewPasswordVal('')
+      setConfirmPasswordVal('')
+      showToast('Admin password updated successfully!')
+      return
+    }
+
+    if (currentPasswordVal === getAdminPassword()) {
+      updateAdminPassword(newPasswordVal)
+      setCurrentPasswordVal('')
+      setNewPasswordVal('')
+      setConfirmPasswordVal('')
+      showToast('Offline Mode: Admin password changed locally!')
+    } else {
+      alert(backendResult.message || 'Incorrect current password!')
+    }
   }
 
   const markNotificationRead = () => {
@@ -341,14 +503,24 @@ const Admin = () => {
             initial={{ opacity: 0, y: -50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-24 right-6 z-[100] bg-black text-brand-gold py-4 px-6 border-l-4 border-brand-gold shadow-2xl flex items-center gap-4"
+            className="fixed top-24 right-6 z-[100] bg-black text-brand-gold py-4 px-6 border-l-4 border-brand-gold shadow-2xl flex items-center gap-6 animate-fade-in"
           >
-            <Bell className="animate-swing" size={18} />
-            <div className="text-xs font-black uppercase tracking-wider text-left">
+            <Bell className="animate-swing shrink-0" size={18} />
+            <div className="text-xs font-black uppercase tracking-wider text-left flex-1">
               <span className="text-white block font-bold text-[10px]">Stryper Notification</span>
-              {toast}
+              {typeof toast === 'string' ? toast : toast.message}
             </div>
-            <button onClick={() => setToast(null)} className="text-white/40 hover:text-white ml-2">
+            {typeof toast === 'object' && toast.actionUrl && (
+              <a 
+                href={toast.actionUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-brand-gold text-black px-3.5 py-2 text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-colors shrink-0 cursor-pointer shadow-md"
+              >
+                {toast.actionLabel || 'View'}
+              </a>
+            )}
+            <button onClick={() => setToast(null)} className="text-white/40 hover:text-white ml-1 shrink-0 cursor-pointer">
               <X size={14} />
             </button>
           </motion.div>
@@ -356,13 +528,13 @@ const Admin = () => {
       </AnimatePresence>
 
       {/* Mobile Top Header (Fixed) */}
-      <header className="lg:hidden w-full bg-black text-white h-16 flex items-center justify-between px-6 border-b border-white/10 fixed top-0 left-0 z-40">
+      <header className="lg:hidden w-full bg-black text-white h-16 flex items-center justify-between px-6 sm:px-10 border-b border-white/10 fixed top-0 left-0 z-40">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsMobileSidebarOpen(true)}
-            className="text-white hover:text-brand-gold p-1 transition-colors focus:outline-none cursor-pointer"
+            className="text-white hover:text-brand-gold p-2 -ml-2 transition-colors focus:outline-none cursor-pointer flex items-center justify-center"
           >
-            <Menu size={20} />
+            <Menu size={24} />
           </button>
           <h2 className="text-brand-gold text-sm font-black uppercase tracking-[0.2em] font-serif leading-none">Stryper Admin</h2>
         </div>
@@ -431,21 +603,42 @@ const Admin = () => {
             </button>
             <button 
               onClick={() => {
-                setActiveTab('add-project')
+                setActiveTab('manage-projects')
                 setIsMobileSidebarOpen(false)
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${activeTab === 'add-project' ? 'bg-brand-gold text-black' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
+              className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${activeTab === 'manage-projects' || activeTab === 'add-project' ? 'bg-brand-gold text-black' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
             >
-              <FolderKanban size={14} /> Add Project
+              <span className="flex items-center gap-3"><FolderKanban size={14} /> Projects</span>
+              <span className={`text-[9px] px-2 py-0.5 font-bold ${activeTab === 'manage-projects' || activeTab === 'add-project' ? 'bg-black text-brand-gold' : 'bg-white/10 text-white'}`}>{projects.length}</span>
             </button>
             <button 
               onClick={() => {
-                setActiveTab('add-blog')
+                setActiveTab('manage-blogs')
                 setIsMobileSidebarOpen(false)
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${activeTab === 'add-blog' ? 'bg-brand-gold text-black' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
+              className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${activeTab === 'manage-blogs' || activeTab === 'add-blog' ? 'bg-brand-gold text-black' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
             >
-              <FileText size={14} /> Add Blog
+              <span className="flex items-center gap-3"><FileText size={14} /> Blogs</span>
+              <span className={`text-[9px] px-2 py-0.5 font-bold ${activeTab === 'manage-blogs' || activeTab === 'add-blog' ? 'bg-black text-brand-gold' : 'bg-white/10 text-white'}`}>{blogs.length}</span>
+            </button>
+            <button 
+              onClick={() => {
+                setActiveTab('testimonials')
+                setIsMobileSidebarOpen(false)
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${activeTab === 'testimonials' ? 'bg-brand-gold text-black' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
+            >
+              <span className="flex items-center gap-3"><Award size={14} /> Testimonials</span>
+              <span className={`text-[9px] px-2 py-0.5 font-bold ${activeTab === 'testimonials' ? 'bg-black text-brand-gold' : 'bg-white/10 text-white'}`}>{testimonials.length}</span>
+            </button>
+            <button 
+              onClick={() => {
+                setActiveTab('settings')
+                setIsMobileSidebarOpen(false)
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${activeTab === 'settings' ? 'bg-brand-gold text-black' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
+            >
+              <Globe size={14} /> Site Settings
             </button>
             <button 
               onClick={() => {
@@ -473,22 +666,34 @@ const Admin = () => {
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="bg-white p-6 border border-black/5 shadow-md flex flex-col justify-between">
-                  <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block">Total Inquiries</span>
+                <button 
+                  onClick={() => setActiveTab('inquiries')}
+                  className="bg-white p-6 border border-black/5 shadow-md flex flex-col justify-between items-start text-left cursor-pointer hover:border-brand-gold/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 focus:outline-none w-full group"
+                >
+                  <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block group-hover:text-black transition-colors">Total Inquiries</span>
                   <span className="text-4xl font-black text-black mt-2 font-serif">{inquiries.length}</span>
-                </div>
-                <div className="bg-white p-6 border border-black/5 shadow-md flex flex-col justify-between">
-                  <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block">Careers Applications</span>
+                </button>
+                <button 
+                  onClick={() => setActiveTab('careers')}
+                  className="bg-white p-6 border border-black/5 shadow-md flex flex-col justify-between items-start text-left cursor-pointer hover:border-brand-gold/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 focus:outline-none w-full group"
+                >
+                  <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block group-hover:text-black transition-colors">Careers Applications</span>
                   <span className="text-4xl font-black text-black mt-2 font-serif">{careers.length}</span>
-                </div>
-                <div className="bg-white p-6 border border-black/5 shadow-md flex flex-col justify-between">
-                  <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block">Projects Live</span>
+                </button>
+                <button 
+                  onClick={() => setActiveTab('manage-projects')}
+                  className="bg-white p-6 border border-black/5 shadow-md flex flex-col justify-between items-start text-left cursor-pointer hover:border-brand-gold/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 focus:outline-none w-full group"
+                >
+                  <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block group-hover:text-black transition-colors">Projects Live</span>
                   <span className="text-4xl font-black text-black mt-2 font-serif">{projects.length}</span>
-                </div>
-                <div className="bg-white p-6 border border-black/5 shadow-md flex flex-col justify-between">
-                  <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block">Published Blogs</span>
+                </button>
+                <button 
+                  onClick={() => setActiveTab('manage-blogs')}
+                  className="bg-white p-6 border border-black/5 shadow-md flex flex-col justify-between items-start text-left cursor-pointer hover:border-brand-gold/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 focus:outline-none w-full group"
+                >
+                  <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block group-hover:text-black transition-colors">Published Blogs</span>
                   <span className="text-4xl font-black text-black mt-2 font-serif">{blogs.length}</span>
-                </div>
+                </button>
               </div>
 
               {/* Site Traffic & Visitors */}
@@ -645,7 +850,13 @@ const Admin = () => {
                               </div>
                               <div className="flex gap-2 pt-2">
                                 <button 
-                                  onClick={() => setSelectedInquiry(inq)}
+                                  onClick={async () => {
+                                    setSelectedInquiry(inq)
+                                    if (inq.status === 'new') {
+                                      await updateInquiryStatusBackend(inq.id, 'read')
+                                      loadData()
+                                    }
+                                  }}
                                   className="flex-1 bg-black text-white hover:bg-brand-gold hover:text-black py-2.5 text-center font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
                                 >
                                   View Detail
@@ -689,7 +900,13 @@ const Admin = () => {
                                   <td className="py-4 px-6 text-black/50 font-mono">{new Date(inq.date).toLocaleDateString()}</td>
                                   <td className="py-4 px-6 text-right space-x-2">
                                     <button 
-                                      onClick={() => setSelectedInquiry(inq)}
+                                      onClick={async () => {
+                                        setSelectedInquiry(inq)
+                                        if (inq.status === 'new') {
+                                          await updateInquiryStatusBackend(inq.id, 'read')
+                                          loadData()
+                                        }
+                                      }}
                                       className="bg-black text-white hover:bg-brand-gold hover:text-black py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
                                     >
                                       View Detail
@@ -725,7 +942,38 @@ const Admin = () => {
                         {selectedCareer.position}
                       </span>
                       <h3 className="text-black text-2xl font-black font-serif uppercase tracking-tight pt-2">{selectedCareer.name}</h3>
-                      <span className="text-[9px] text-black/40 font-mono block">Submitted: {new Date(selectedCareer.date).toLocaleString()}</span>
+                      <span className="text-[9px] text-black/40 font-mono block mb-2">Submitted: {new Date(selectedCareer.date).toLocaleString()}</span>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border ${
+                          selectedCareer.status === 'Shortlisted' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                          selectedCareer.status === 'Rejected' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
+                          'bg-brand-gold/10 text-brand-gold border-brand-gold/20'
+                        }`}>
+                          {selectedCareer.status || 'Pending'}
+                        </span>
+                        <button
+                          onClick={async () => {
+                            await updateCareerStatusBackend(selectedCareer.id, 'Shortlisted')
+                            selectedCareer.status = 'Shortlisted'
+                            loadData()
+                            showToast('Application Shortlisted!')
+                          }}
+                          className="bg-black text-white hover:bg-brand-gold hover:text-black py-0.5 px-2 font-bold uppercase tracking-widest text-[8px] transition-colors cursor-pointer"
+                        >
+                          Shortlist
+                        </button>
+                        <button
+                          onClick={async () => {
+                            await updateCareerStatusBackend(selectedCareer.id, 'Rejected')
+                            selectedCareer.status = 'Rejected'
+                            loadData()
+                            showToast('Application Rejected.')
+                          }}
+                          className="border border-red-200 text-red-500 hover:bg-red-50 py-0.5 px-2 font-bold uppercase tracking-widest text-[8px] transition-colors cursor-pointer"
+                        >
+                          Reject
+                        </button>
+                      </div>
                     </div>
                     <button 
                       onClick={() => setSelectedCareer(null)}
@@ -910,6 +1158,397 @@ const Admin = () => {
                   </div>
                 </>
               )}
+            </div>
+          )}
+
+          {/* Tab content: Manage Projects */}
+          {activeTab === 'manage-projects' && (
+            <div className="space-y-8">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-black font-black text-3xl md:text-4xl uppercase tracking-wider font-serif">Manage Projects</h1>
+                  <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">View and delete portfolio projects</p>
+                </div>
+                <button 
+                  onClick={() => setActiveTab('add-project')}
+                  className="bg-black text-brand-gold hover:bg-brand-gold hover:text-black py-2.5 px-6 font-black uppercase tracking-widest text-[10px] transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <Plus size={14} /> Add New Project
+                </button>
+              </div>
+
+              <div className="bg-white border border-black/5 shadow-md overflow-hidden">
+                {projects.length === 0 ? (
+                  <div className="p-16 text-center text-black/40 italic">
+                    No projects available. Click "Add New Project" to create one.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-black text-brand-gold text-[10px] font-black tracking-widest uppercase border-b border-black/10">
+                          <th className="py-4 px-6">Project Image & Title</th>
+                          <th className="py-4 px-6">Category</th>
+                          <th className="py-4 px-6">Location</th>
+                          <th className="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/5 text-xs font-medium">
+                        {projects.map((proj) => (
+                          <tr key={proj.slug} className="hover:bg-black/[0.01] transition-colors">
+                            <td className="py-4 px-6 flex items-center gap-4">
+                              <img src={proj.image} alt={proj.title} className="w-12 h-12 object-cover border border-black/10" />
+                              <div>
+                                <p className="font-bold text-black text-sm">{proj.title}</p>
+                                <p className="text-[10px] text-black/40">Client: {proj.client}</p>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <span className="bg-black text-brand-gold py-1 px-2.5 text-[9px] font-black uppercase tracking-widest">
+                                {proj.category}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6">{proj.location}</td>
+                            <td className="py-4 px-6 text-right">
+                              <button 
+                                onClick={() => handleDeleteProject(proj.slug)}
+                                className="border border-red-200 text-red-500 hover:bg-red-50 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab content: Manage Blogs */}
+          {activeTab === 'manage-blogs' && (
+            <div className="space-y-8">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-black font-black text-3xl md:text-4xl uppercase tracking-wider font-serif">Manage Blogs</h1>
+                  <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">View and delete blog posts</p>
+                </div>
+                <button 
+                  onClick={() => setActiveTab('add-blog')}
+                  className="bg-black text-brand-gold hover:bg-brand-gold hover:text-black py-2.5 px-6 font-black uppercase tracking-widest text-[10px] transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <Plus size={14} /> Add New Blog Post
+                </button>
+              </div>
+
+              <div className="bg-white border border-black/5 shadow-md overflow-hidden">
+                {blogs.length === 0 ? (
+                  <div className="p-16 text-center text-black/40 italic">
+                    No blogs published yet. Click "Add New Blog Post" to publish one.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-black text-brand-gold text-[10px] font-black tracking-widest uppercase border-b border-black/10">
+                          <th className="py-4 px-6">Blog Banner & Title</th>
+                          <th className="py-4 px-6">Category</th>
+                          <th className="py-4 px-6">Date</th>
+                          <th className="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/5 text-xs font-medium">
+                        {blogs.map((b) => (
+                          <tr key={b.slug} className="hover:bg-black/[0.01] transition-colors">
+                            <td className="py-4 px-6 flex items-center gap-4">
+                              <img src={b.image} alt={b.title} className="w-16 h-10 object-cover border border-black/10" />
+                              <div>
+                                <p className="font-bold text-black text-sm">{b.title}</p>
+                                <p className="text-[10px] text-black/40">Author: {b.author}</p>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <span className="bg-black text-brand-gold py-1 px-2.5 text-[9px] font-black uppercase tracking-widest">
+                                {b.category}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6 font-mono text-black/50">{b.date}</td>
+                            <td className="py-4 px-6 text-right">
+                              <button 
+                                onClick={() => handleDeleteBlog(b.slug)}
+                                className="border border-red-200 text-red-500 hover:bg-red-50 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab content: Manage Testimonials */}
+          {activeTab === 'testimonials' && (
+            <div className="space-y-8 max-w-6xl">
+              <div>
+                <h1 className="text-black font-black text-3xl md:text-4xl uppercase tracking-wider font-serif flex items-center gap-3">
+                  <Award className="text-brand-gold w-8 h-8 shrink-0" /> Manage Testimonials
+                </h1>
+                <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">Manage client reviews and testimonials displayed on home page</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start text-left">
+                {/* Add Testimonial Form */}
+                <form onSubmit={handleTestimonialSubmit} className="lg:col-span-7 bg-white p-6 sm:p-8 border border-black/5 shadow-md space-y-6">
+                  <h3 className="text-black font-black text-lg uppercase tracking-wider border-b border-black/5 pb-2 font-serif">Add New Review</h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Client Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={testimonialForm.name}
+                        onChange={(e) => setTestimonialForm({ ...testimonialForm, name: e.target.value })}
+                        placeholder="e.g. Vikram Malhotra"
+                        className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Designation / Role</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={testimonialForm.role}
+                        onChange={(e) => setTestimonialForm({ ...testimonialForm, role: e.target.value })}
+                        placeholder="e.g. CEO, Malhotra Infra"
+                        className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Rating (1 to 5 Stars)</label>
+                      <select 
+                        value={testimonialForm.rating}
+                        onChange={(e) => setTestimonialForm({ ...testimonialForm, rating: e.target.value })}
+                        className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black cursor-pointer"
+                      >
+                        <option value="5">5 Stars ⭐⭐⭐⭐⭐</option>
+                        <option value="4">4 Stars ⭐⭐⭐⭐</option>
+                        <option value="3">3 Stars ⭐⭐⭐</option>
+                        <option value="2">2 Stars ⭐⭐</option>
+                        <option value="1">1 Star ⭐</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Client Avatar URL (Optional)</label>
+                      <input 
+                        type="url" 
+                        value={testimonialForm.image}
+                        onChange={(e) => setTestimonialForm({ ...testimonialForm, image: e.target.value })}
+                        placeholder="Paste image web URL..."
+                        className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Review Message</label>
+                    <textarea 
+                      required
+                      value={testimonialForm.text}
+                      onChange={(e) => setTestimonialForm({ ...testimonialForm, text: e.target.value })}
+                      placeholder="Write the client's detailed feedback..."
+                      rows="4"
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black resize-none"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="w-full bg-black text-brand-gold hover:bg-brand-gold hover:text-black font-black uppercase tracking-[0.2em] text-xs py-4 transition-colors flex items-center justify-center gap-2 cursor-pointer border border-transparent hover:border-black"
+                  >
+                    <Plus size={16} /> Publish Review
+                  </button>
+                </form>
+
+                {/* List Testimonials */}
+                <div className="lg:col-span-5 space-y-6">
+                  <div className="bg-white p-6 border border-brand-gold/20 shadow-md">
+                    <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block border-b border-black/5 pb-3">Active Reviews ({testimonials.length})</span>
+                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 mt-4">
+                      {testimonials.map((t) => (
+                        <div key={t.name} className="p-4 border border-black/5 bg-[#F8F9FA] space-y-3 relative text-left">
+                          <button 
+                            type="button" 
+                            onClick={() => handleDeleteTestimonial(t.name)}
+                            className="absolute top-3 right-3 text-red-500 hover:text-red-700 p-1 cursor-pointer transition-colors"
+                            title="Delete Review"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          
+                          <div className="flex items-center gap-3">
+                            <img src={t.image} alt={t.name} className="w-10 h-10 rounded-full object-cover border border-black/5" />
+                            <div>
+                              <h4 className="font-bold text-xs text-black">{t.name}</h4>
+                              <p className="text-[9px] text-black/50">{t.role}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="text-[10px] text-brand-gold flex gap-0.5">
+                            {Array.from({ length: t.rating }).map((_, i) => (
+                              <span key={i}>★</span>
+                            ))}
+                          </div>
+                          
+                          <p className="text-[10px] text-black/70 italic leading-relaxed">
+                            "{t.text}"
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab content: Site Settings & Security */}
+          {activeTab === 'settings' && (
+            <div className="space-y-8 max-w-4xl">
+              <div>
+                <h1 className="text-black font-black text-3xl md:text-4xl uppercase tracking-wider font-serif flex items-center gap-3">
+                  <Globe className="text-brand-gold w-8 h-8 shrink-0" /> Settings & Security
+                </h1>
+                <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">Manage contact coordinates, branding information, and security credentials</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                {/* Contact and General Settings Form */}
+                <form onSubmit={handleSettingsSubmit} className="bg-white p-6 sm:p-8 border border-black/5 shadow-md space-y-6 text-left">
+                  <h3 className="text-black font-black text-lg uppercase tracking-wider border-b border-black/5 pb-2 font-serif">Site Coordinates</h3>
+                  
+                  <div>
+                    <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Primary Phone Number</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={settingsForm.phone}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Contact Email Address</label>
+                    <input 
+                      type="email" 
+                      required
+                      value={settingsForm.email}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })}
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Office Location / Address</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={settingsForm.address}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">WhatsApp Link ID</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={settingsForm.whatsapp}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, whatsapp: e.target.value })}
+                        className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Est. Year</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={settingsForm.est}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, est: e.target.value })}
+                        className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="w-full bg-black text-brand-gold hover:bg-brand-gold hover:text-black font-black uppercase tracking-[0.2em] text-xs py-4 transition-colors flex items-center justify-center gap-2 cursor-pointer border border-transparent hover:border-black"
+                  >
+                    Save Coordinates
+                  </button>
+                </form>
+
+                {/* Change Password Form */}
+                <form onSubmit={handlePasswordChangeSubmit} className="bg-white p-6 sm:p-8 border border-black/5 shadow-md space-y-6 text-left">
+                  <h3 className="text-black font-black text-lg uppercase tracking-wider border-b border-black/5 pb-2 font-serif">Security Portal</h3>
+                  
+                  <div>
+                    <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Current Password</label>
+                    <input 
+                      type="password" 
+                      required
+                      value={currentPasswordVal}
+                      onChange={(e) => setCurrentPasswordVal(e.target.value)}
+                      placeholder="Enter current password"
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">New Terminal Password</label>
+                    <input 
+                      type="password" 
+                      required
+                      value={newPasswordVal}
+                      onChange={(e) => setNewPasswordVal(e.target.value)}
+                      placeholder="Enter new password"
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-black/70 uppercase tracking-wide mb-2 block">Confirm Password</label>
+                    <input 
+                      type="password" 
+                      required
+                      value={confirmPasswordVal}
+                      onChange={(e) => setConfirmPasswordVal(e.target.value)}
+                      placeholder="Confirm new password"
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border border-black/15 focus:border-black focus:bg-white transition-colors outline-none font-medium text-sm text-black"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="w-full bg-black text-brand-gold hover:bg-brand-gold hover:text-black font-black uppercase tracking-[0.2em] text-xs py-4 transition-colors flex items-center justify-center gap-2 cursor-pointer border border-transparent hover:border-black"
+                  >
+                    Update Password
+                  </button>
+                </form>
+              </div>
             </div>
           )}
 

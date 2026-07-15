@@ -7,7 +7,10 @@ const Testimonials = () => {
   const [testimonials, setTestimonials] = useState([])
 
   useEffect(() => {
-    setTestimonials(getTestimonials())
+    const load = async () => {
+      setTestimonials(await getTestimonials())
+    }
+    load()
   }, [])
 
   return (

@@ -10,10 +10,14 @@ const ProjectDetail = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const list = getProjects()
-    const found = list.find(p => p.slug === slug)
-    setProject(found)
-    setLoading(false)
+    const load = async () => {
+      setLoading(true)
+      const list = await getProjects()
+      const found = list.find(p => p.slug === slug)
+      setProject(found)
+      setLoading(false)
+    }
+    load()
   }, [slug])
 
   if (loading) {

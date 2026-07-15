@@ -19,7 +19,7 @@ const Blogs = lazy(() => import('./pages/Blogs'))
 
 function App() {
   const location = useLocation()
-  const isAdminPath = location.pathname === '/admin'
+  const isAdminPath = location.pathname.toLowerCase().startsWith('/admin')
 
   useEffect(() => {
     incrementVisitorCount()

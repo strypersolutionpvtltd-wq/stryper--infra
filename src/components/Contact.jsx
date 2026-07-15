@@ -1,9 +1,27 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Phone, Mail, MapPin, Send, CheckCircle2 } from 'lucide-react'
-import { addInquiry } from '../data/store'
+import { addInquiry, getSiteSettings, getSiteSettingsSync } from '../data/store'
 
 const Contact = () => {
+  const [settings, setSettings] = useState(getSiteSettingsSync())
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const data = await getSiteSettings()
+      if (data) {
+        setSettings(data)
+      }
+    }
+    loadSettings()
+
+    const handleSettingsUpdate = () => {
+      loadSettings()
+    }
+    window.addEventListener('stryper_settings_updated', handleSettingsUpdate)
+    return () => window.removeEventListener('stryper_settings_updated', handleSettingsUpdate)
+  }, [])
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -69,7 +87,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="text-brand-gold font-black uppercase tracking-widest text-[10px] mb-1">Direct Line</h4>
-                  <a href="tel:+919565310410" className="text-2xl font-black text-black hover:text-brand-gold transition-colors">+91 9565310410</a>
+                  <a href={`tel:${settings.phone}`} className="text-2xl font-black text-black hover:text-brand-gold transition-colors">{settings.phone}</a>
                 </div>
               </div>
 
@@ -79,7 +97,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="text-brand-gold font-black uppercase tracking-widest text-[10px] mb-1">Official Email</h4>
-                  <a href="mailto:gc@stryperinteriorandinfra.com" className="text-xl font-black text-black hover:text-brand-gold transition-colors">gc@stryperinteriorandinfra.com</a>
+                  <a href={`mailto:${settings.email}`} className="text-xl font-black text-black hover:text-brand-gold transition-colors">{settings.email}</a>
                 </div>
               </div>
 
@@ -89,7 +107,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="text-brand-gold font-black uppercase tracking-widest text-[10px] mb-1">Presence</h4>
-                  <p className="text-lg font-black text-black">Headquartered in Jaipur | Pan-India Capability</p>
+                  <p className="text-lg font-black text-black">{settings.address}</p>
                 </div>
               </div>
             </div>

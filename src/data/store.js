@@ -246,6 +246,19 @@ const initializeStore = () => {
       { id: 'not-3', text: 'New project Brief submitted by Rahul Chhabra', date: '2026-07-02T05:15:00Z', read: false }
     ]));
   }
+  if (!localStorage.getItem('stryper_admin_password')) {
+    localStorage.setItem('stryper_admin_password', 'infra@@2026');
+  }
+  if (!localStorage.getItem('stryper_settings')) {
+    localStorage.setItem('stryper_settings', JSON.stringify({
+      phone: '+91 9565310410',
+      email: 'info@stryperinterior.com',
+      address: 'Pan India Projects',
+      whatsapp: '9565310410',
+      est: '2010',
+      website: 'www.stryperinterior.com'
+    }));
+  }
 };
 
 // Execute initialization
@@ -253,64 +266,242 @@ if (typeof window !== 'undefined') {
   initializeStore();
 }
 
-export const getProjects = () => {
+export const getProjects = async () => {
+  try {
+    const res = await fetch('http://localhost:3001/api/v1/projects');
+    const data = await res.json();
+    if (data.success && data.projects) {
+      return data.projects;
+    }
+  } catch (e) {
+    console.error("Failed to fetch projects from backend:", e.message);
+  }
   if (typeof window === 'undefined') return DEFAULT_PROJECTS;
   return JSON.parse(localStorage.getItem('stryper_projects')) || DEFAULT_PROJECTS;
 };
 
-export const addProject = (project) => {
-  if (typeof window === 'undefined') return;
-  const projects = getProjects();
+export const addProject = async (project) => {
   const newProject = {
     ...project,
     slug: project.slug || project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
   };
-  projects.unshift(newProject);
-  localStorage.setItem('stryper_projects', JSON.stringify(projects));
-  addNotification(`New project added: ${newProject.title}`);
+  
+  if (typeof window !== 'undefined') {
+    const projects = JSON.parse(localStorage.getItem('stryper_projects')) || DEFAULT_PROJECTS;
+    projects.unshift(newProject);
+    localStorage.setItem('stryper_projects', JSON.stringify(projects));
+    addNotification(`New project added: ${newProject.title}`);
+  }
+
+  try {
+    const token = localStorage.getItem('stryper_token');
+    const res = await fetch('http://localhost:3001/api/v1/projects', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(newProject)
+    });
+    const data = await res.json();
+    if (data.success) return data.project;
+  } catch (e) {
+    console.error("Failed to save project to backend:", e.message);
+  }
   return newProject;
 };
 
-export const getTestimonials = () => {
+export const deleteProject = async (slugOrId) => {
+  if (typeof window !== 'undefined') {
+    const projects = JSON.parse(localStorage.getItem('stryper_projects')) || DEFAULT_PROJECTS;
+    const filtered = projects.filter(p => p.slug !== slugOrId && p._id !== slugOrId);
+    localStorage.setItem('stryper_projects', JSON.stringify(filtered));
+    addNotification(`Project deleted`);
+  }
+
+  try {
+    const token = localStorage.getItem('stryper_token');
+    let id = slugOrId;
+    if (slugOrId.length !== 24) {
+      const res = await fetch('http://localhost:3001/api/v1/projects');
+      const data = await res.json();
+      if (data.success) {
+        const found = data.projects.find(p => p.slug === slugOrId);
+        if (found) id = found._id;
+      }
+    }
+    await fetch(`http://localhost:3001/api/v1/projects/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {
+    console.error("Failed to delete project from backend:", e.message);
+  }
+};
+
+export const getTestimonials = async () => {
+  try {
+    const res = await fetch('http://localhost:3001/api/v1/testimonials');
+    const data = await res.json();
+    if (data.success && data.testimonials) {
+      return data.testimonials;
+    }
+  } catch (e) {
+    console.error("Failed to fetch testimonials from backend:", e.message);
+  }
   if (typeof window === 'undefined') return DEFAULT_TESTIMONIALS;
   return JSON.parse(localStorage.getItem('stryper_testimonials')) || DEFAULT_TESTIMONIALS;
 };
 
-export const addTestimonial = (testimonial) => {
-  if (typeof window === 'undefined') return;
-  const testimonials = getTestimonials();
-  testimonials.unshift(testimonial);
-  localStorage.setItem('stryper_testimonials', JSON.stringify(testimonials));
-  addNotification(`New client review added by ${testimonial.name}`);
+export const addTestimonial = async (testimonial) => {
+  if (typeof window !== 'undefined') {
+    const testimonials = JSON.parse(localStorage.getItem('stryper_testimonials')) || DEFAULT_TESTIMONIALS;
+    testimonials.unshift(testimonial);
+    localStorage.setItem('stryper_testimonials', JSON.stringify(testimonials));
+    addNotification(`New client review added by ${testimonial.name}`);
+  }
+
+  try {
+    const res = await fetch('http://localhost:3001/api/v1/testimonials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testimonial)
+    });
+    const data = await res.json();
+    if (data.success) return data.testimonial;
+  } catch (e) {
+    console.error("Failed to save testimonial to backend:", e.message);
+  }
+  return testimonial;
 };
 
-export const getBlogs = () => {
+export const deleteTestimonial = async (idOrName) => {
+  if (typeof window !== 'undefined') {
+    const testimonials = JSON.parse(localStorage.getItem('stryper_testimonials')) || DEFAULT_TESTIMONIALS;
+    const filtered = testimonials.filter(t => t.name !== idOrName && t._id !== idOrName);
+    localStorage.setItem('stryper_testimonials', JSON.stringify(filtered));
+    addNotification(`Testimonial deleted`);
+  }
+
+  try {
+    const token = localStorage.getItem('stryper_token');
+    let id = idOrName;
+    if (idOrName.length !== 24) {
+      const res = await fetch('http://localhost:3001/api/v1/testimonials');
+      const data = await res.json();
+      if (data.success) {
+        const found = data.testimonials.find(t => t.name === idOrName);
+        if (found) id = found._id;
+      }
+    }
+    await fetch(`http://localhost:3001/api/v1/testimonials/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {
+    console.error("Failed to delete testimonial from backend:", e.message);
+  }
+};
+
+export const getBlogs = async () => {
+  try {
+    const res = await fetch('http://localhost:3001/api/v1/blogs');
+    const data = await res.json();
+    if (data.success && data.blogs) {
+      return data.blogs;
+    }
+  } catch (e) {
+    console.error("Failed to fetch blogs from backend:", e.message);
+  }
   if (typeof window === 'undefined') return DEFAULT_BLOGS;
   return JSON.parse(localStorage.getItem('stryper_blogs')) || DEFAULT_BLOGS;
 };
 
-export const addBlog = (blog) => {
-  if (typeof window === 'undefined') return;
-  const blogs = getBlogs();
+export const addBlog = async (blog) => {
   const newBlog = {
     ...blog,
     slug: blog.slug || blog.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   };
-  blogs.unshift(newBlog);
-  localStorage.setItem('stryper_blogs', JSON.stringify(blogs));
-  addNotification(`New blog post published: ${newBlog.title}`);
+
+  if (typeof window !== 'undefined') {
+    const blogs = JSON.parse(localStorage.getItem('stryper_blogs')) || DEFAULT_BLOGS;
+    blogs.unshift(newBlog);
+    localStorage.setItem('stryper_blogs', JSON.stringify(blogs));
+    addNotification(`New blog post published: ${newBlog.title}`);
+  }
+
+  try {
+    const token = localStorage.getItem('stryper_token');
+    const res = await fetch('http://localhost:3001/api/v1/blogs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(newBlog)
+    });
+    const data = await res.json();
+    if (data.success) return data.blog;
+  } catch (e) {
+    console.error("Failed to save blog to backend:", e.message);
+  }
   return newBlog;
 };
 
-export const getInquiries = () => {
+export const deleteBlog = async (slugOrId) => {
+  if (typeof window !== 'undefined') {
+    const blogs = JSON.parse(localStorage.getItem('stryper_blogs')) || DEFAULT_BLOGS;
+    const filtered = blogs.filter(b => b.slug !== slugOrId && b._id !== slugOrId);
+    localStorage.setItem('stryper_blogs', JSON.stringify(filtered));
+    addNotification(`Blog post deleted`);
+  }
+
+  try {
+    const token = localStorage.getItem('stryper_token');
+    let id = slugOrId;
+    if (slugOrId.length !== 24) {
+      const res = await fetch('http://localhost:3001/api/v1/blogs');
+      const data = await res.json();
+      if (data.success) {
+        const found = data.blogs.find(b => b.slug === slugOrId);
+        if (found) id = found._id;
+      }
+    }
+    await fetch(`http://localhost:3001/api/v1/blogs/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {
+    console.error("Failed to delete blog from backend:", e.message);
+  }
+};
+
+export const getInquiries = async () => {
+  const token = localStorage.getItem('stryper_token');
+  if (token) {
+    try {
+      const res = await fetch('http://localhost:3001/api/v1/admin/inquiries', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success && data.inquiries) {
+        return data.inquiries.map(inq => ({
+          id: inq._id,
+          ...inq
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to fetch inquiries from backend:", e.message);
+    }
+  }
   if (typeof window === 'undefined') return [];
   return JSON.parse(localStorage.getItem('stryper_inquiries')) || [];
 };
 
-export const addInquiry = (inquiry) => {
+export const addInquiry = async (inquiry) => {
   if (typeof window === 'undefined') return;
-  const inquiries = getInquiries();
+  const inquiries = JSON.parse(localStorage.getItem('stryper_inquiries')) || [];
   const newInq = {
     id: `inq-${Date.now()}`,
     ...inquiry,
@@ -320,16 +511,82 @@ export const addInquiry = (inquiry) => {
   inquiries.unshift(newInq);
   localStorage.setItem('stryper_inquiries', JSON.stringify(inquiries));
   addNotification(`New project Brief submitted by ${newInq.name}`);
+
+  try {
+    await fetch('http://localhost:3001/api/v1/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: inquiry.name,
+        email: inquiry.email,
+        phone: inquiry.phone,
+        service: inquiry.service,
+        message: inquiry.message
+      })
+    });
+  } catch (err) {
+    console.error('Failed to post inquiry to backend:', err.message);
+  }
 };
 
-export const getCareers = () => {
+export const deleteInquiryBackend = async (id) => {
+  if (typeof window !== 'undefined') {
+    const inquiries = JSON.parse(localStorage.getItem('stryper_inquiries')) || [];
+    const filtered = inquiries.filter(i => i.id !== id && i._id !== id);
+    localStorage.setItem('stryper_inquiries', JSON.stringify(filtered));
+  }
+
+  const token = localStorage.getItem('stryper_token');
+  if (token && id && id.length === 24) {
+    try {
+      await fetch(`http://localhost:3001/api/v1/admin/inquiries/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    } catch (e) {
+      console.error("Failed to delete inquiry on backend:", e.message);
+    }
+  }
+};
+
+export const updateInquiryStatusBackend = async (id, status) => {
+  if (typeof window !== 'undefined') {
+    const inquiries = JSON.parse(localStorage.getItem('stryper_inquiries')) || [];
+    const updated = inquiries.map(i => (i.id === id || i._id === id) ? { ...i, status } : i);
+    localStorage.setItem('stryper_inquiries', JSON.stringify(updated));
+  }
+
+  const token = localStorage.getItem('stryper_token');
+  if (token && id && id.length === 24) {
+    try {
+      await fetch(`http://localhost:3001/api/v1/admin/inquiries/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      });
+    } catch (e) {
+      console.error("Failed to update inquiry status on backend:", e.message);
+    }
+  }
+};
+
+export const getCareers = async () => {
+  const backend = await fetchCareersFromBackend();
+  if (backend && backend.length > 0) {
+    return backend;
+  }
   if (typeof window === 'undefined') return [];
-  return JSON.parse(localStorage.getItem('stryper_careers')) || [];
+  const stored = localStorage.getItem('stryper_careers');
+  return stored ? JSON.parse(stored) : [];
 };
 
-export const addCareer = (career) => {
+
+export const addCareer = async (career) => {
   if (typeof window === 'undefined') return;
-  const careers = getCareers();
+  const careers = JSON.parse(localStorage.getItem('stryper_careers')) || [];
   const newCar = {
     id: `car-${Date.now()}`,
     ...career,
@@ -339,6 +596,125 @@ export const addCareer = (career) => {
   careers.unshift(newCar);
   localStorage.setItem('stryper_careers', JSON.stringify(careers));
   addNotification(`New job application from ${newCar.name}`);
+
+  try {
+    const jobsRes = await fetch('http://localhost:3001/api/v1/jobs/stryper');
+    const jobsData = await jobsRes.json();
+    let jobId = null;
+    if (jobsData.success && jobsData.jobs.length > 0) {
+      const matched = jobsData.jobs.find(j => 
+        j.title.toLowerCase().includes(career.position.toLowerCase()) || 
+        career.position.toLowerCase().includes(j.title.toLowerCase())
+      );
+      jobId = matched ? matched._id : jobsData.jobs[0]._id;
+    }
+
+    if (jobId) {
+      await fetch('http://localhost:3001/api/v1/jobs/stryper/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobId,
+          name: career.name,
+          email: career.email,
+          phone: career.phone,
+          resumeUrl: career.resumeData,
+          coverLetter: career.message
+        })
+      });
+    }
+  } catch (err) {
+    console.error('Failed to submit application to backend:', err.message);
+  }
+};
+
+export const deleteCareerBackend = async (id) => {
+  if (typeof window !== 'undefined') {
+    const careers = JSON.parse(localStorage.getItem('stryper_careers')) || [];
+    const filtered = careers.filter(c => c.id !== id && c._id !== id);
+    localStorage.setItem('stryper_careers', JSON.stringify(filtered));
+  }
+
+  const token = localStorage.getItem('stryper_token');
+  if (token && id && id.length === 24) {
+    try {
+      await fetch(`http://localhost:3001/api/v1/admin/applications/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    } catch (e) {
+      console.error("Failed to delete career application on backend:", e.message);
+    }
+  }
+};
+
+export const updateCareerStatusBackend = async (id, status) => {
+  if (typeof window !== 'undefined') {
+    const careers = JSON.parse(localStorage.getItem('stryper_careers')) || [];
+    const updated = careers.map(c => (c.id === id || c._id === id) ? { ...c, status } : c);
+    localStorage.setItem('stryper_careers', JSON.stringify(updated));
+  }
+
+  const token = localStorage.getItem('stryper_token');
+  if (token && id && id.length === 24) {
+    try {
+      await fetch(`http://localhost:3001/api/v1/admin/applications/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      });
+    } catch (e) {
+      console.error("Failed to update career status on backend:", e.message);
+    }
+  }
+};
+
+// Gallery API integration
+export const getGallery = async () => {
+  try {
+    const res = await fetch('http://localhost:3001/api/v1/gallery');
+    const data = await res.json();
+    if (data.success && data.gallery) {
+      return data.gallery;
+    }
+  } catch (e) {
+    console.error("Failed to fetch gallery from backend:", e.message);
+  }
+  return [];
+};
+
+export const addGallery = async (item) => {
+  try {
+    const token = localStorage.getItem('stryper_token');
+    const res = await fetch('http://localhost:3001/api/v1/gallery', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(item)
+    });
+    const data = await res.json();
+    if (data.success) return data.galleryItem;
+  } catch (e) {
+    console.error("Failed to save gallery item to backend:", e.message);
+  }
+  return item;
+};
+
+export const deleteGallery = async (id) => {
+  try {
+    const token = localStorage.getItem('stryper_token');
+    await fetch(`http://localhost:3001/api/v1/gallery/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch (e) {
+    console.error("Failed to delete gallery item from backend:", e.message);
+  }
 };
 
 export const getNotifications = () => {
@@ -356,8 +732,6 @@ export const addNotification = (text) => {
     read: false
   });
   localStorage.setItem('stryper_notifications', JSON.stringify(notifications));
-  
-  // Custom event to alert listeners across files
   window.dispatchEvent(new Event('stryper_notifications_updated'));
 };
 
@@ -375,26 +749,230 @@ export const clearNotifications = () => {
   window.dispatchEvent(new Event('stryper_notifications_updated'));
 };
 
-// Visitor Traffic Stats Tracking
-export const incrementVisitorCount = () => {
+export const incrementVisitorCount = async () => {
   if (typeof window === 'undefined') return;
-  
-  // Track page views
-  const pageViews = parseInt(localStorage.getItem('stryper_pageviews') || '254', 10);
+  const pageViews = parseInt(localStorage.getItem('stryper_pageviews') || '293', 10);
   localStorage.setItem('stryper_pageviews', (pageViews + 1).toString());
 
-  // Track unique visitors
   if (!sessionStorage.getItem('stryper_visited_session')) {
     sessionStorage.setItem('stryper_visited_session', 'true');
-    const uniqueVisitors = parseInt(localStorage.getItem('stryper_visitors') || '114', 10);
+    const uniqueVisitors = parseInt(localStorage.getItem('stryper_visitors') || '116', 10);
     localStorage.setItem('stryper_visitors', (uniqueVisitors + 1).toString());
+  }
+
+  try {
+    await fetch('http://localhost:3001/api/v1/analytics/visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: window.location.pathname })
+    });
+  } catch (err) {
+    console.error('Failed to log visitor analytics to backend:', err.message);
   }
 };
 
 export const getTrafficStats = () => {
-  if (typeof window === 'undefined') return { visitors: 114, pageviews: 254 };
+  if (typeof window === 'undefined') return { visitors: 116, pageviews: 293 };
   return {
-    visitors: parseInt(localStorage.getItem('stryper_visitors') || '114', 10),
-    pageviews: parseInt(localStorage.getItem('stryper_pageviews') || '254', 10)
+    visitors: parseInt(localStorage.getItem('stryper_visitors') || '116', 10),
+    pageviews: parseInt(localStorage.getItem('stryper_pageviews') || '293', 10)
   };
+};
+
+export const getAdminPassword = () => {
+  if (typeof window === 'undefined') return 'infra@@2026';
+  return localStorage.getItem('stryper_admin_password') || 'infra@@2026';
+};
+
+export const updateAdminPassword = (newPassword) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('stryper_admin_password', newPassword);
+  addNotification(`Admin password updated`);
+};
+
+export const getSiteSettingsSync = () => {
+  const defaultSettings = {
+    phone: '+91 9565310410',
+    email: 'gc@stryperinteriorandinfra.com',
+    address: 'Pan India Projects',
+    whatsapp: '918448590303',
+    est: '2010',
+    website: 'www.stryperinteriorandinfra.com'
+  };
+  if (typeof window === 'undefined') return defaultSettings;
+  const stored = localStorage.getItem('stryper_settings');
+  return stored ? JSON.parse(stored) : defaultSettings;
+};
+
+export const getSiteSettings = async () => {
+  const token = localStorage.getItem('stryper_token');
+  try {
+    const url = token 
+      ? 'http://localhost:3001/api/v1/admin/settings' 
+      : 'http://localhost:3001/api/v1/admin/settings/public';
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    
+    const res = await fetch(url, { headers });
+    const data = await res.json();
+    if (data.success && data.settings) {
+      return data.settings;
+    }
+  } catch (e) {
+    console.error("Failed to fetch settings from backend:", e.message);
+  }
+  return getSiteSettingsSync();
+};
+
+export const updateSiteSettings = async (newSettings) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('stryper_settings', JSON.stringify(newSettings));
+    addNotification(`Site settings updated`);
+    window.dispatchEvent(new Event('stryper_settings_updated'));
+  }
+
+  const token = localStorage.getItem('stryper_token');
+  if (token) {
+    try {
+      await fetch('http://localhost:3001/api/v1/admin/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newSettings)
+      });
+    } catch (e) {
+      console.error("Failed to save settings on backend:", e.message);
+    }
+  }
+};
+
+// API Integration Helpers for Admin page
+export const loginAdminBackend = async (password) => {
+  try {
+    const res = await fetch('http://localhost:3001/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'admin@stryper.com',
+        password: password
+      })
+    });
+    const data = await res.json();
+    if (data.success && data.token) {
+      localStorage.setItem('stryper_token', data.token);
+      return { success: true, user: data.user };
+    }
+    return { success: false, message: data.message || 'Login failed' };
+  } catch (err) {
+    console.error('Admin login error:', err);
+    return { success: false, message: 'Server is currently offline or unreachable.' };
+  }
+};
+
+export const changeAdminPasswordBackend = async (currentPassword, newPassword) => {
+  const token = localStorage.getItem('stryper_token');
+  if (!token) return { success: false, message: 'Not authenticated' };
+  try {
+    const res = await fetch('http://localhost:3001/api/v1/auth/change-password', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        currentPassword,
+        newPassword
+      })
+    });
+    const data = await res.json();
+    return { success: data.success, message: data.message };
+  } catch (err) {
+    console.error('Error changing password:', err);
+    return { success: false, message: 'Server connection failed' };
+  }
+};
+
+export const fetchStatsFromBackend = async () => {
+  const token = localStorage.getItem('stryper_token');
+  if (!token) return null;
+  try {
+    const res = await fetch('http://localhost:3001/api/v1/admin/stats', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const data = await res.json();
+    if (data.success) {
+      return data.stats;
+    }
+    return null;
+  } catch (err) {
+    console.error('Error fetching admin stats:', err);
+    return null;
+  }
+};
+
+export const fetchCareersFromBackend = async () => {
+  const token = localStorage.getItem('stryper_token');
+  if (!token) return [];
+  try {
+    const res = await fetch('http://localhost:3001/api/v1/admin/applications', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const data = await res.json();
+    if (data.success) {
+      return data.applications.map(app => {
+        let guestInfo = { guestName: 'Applicant', guestEmail: '', guestPhone: '' };
+        try {
+          if (app.notes) {
+            guestInfo = JSON.parse(app.notes);
+          }
+        } catch(e) {}
+        return {
+          id: app._id,
+          name: guestInfo.guestName || (app.candidateId ? `${app.candidateId.firstName} ${app.candidateId.lastName}` : 'Applicant'),
+          email: guestInfo.guestEmail || (app.candidateId ? app.candidateId.email : ''),
+          phone: guestInfo.guestPhone || (app.candidateId ? app.candidateId.phone : ''),
+          position: app.jobId ? app.jobId.title : 'Internal Staff',
+          experience: app.candidateId && app.candidateId.experience ? app.candidateId.experience : 'N/A',
+          portfolio: 'Not Provided',
+          resumeName: 'Download Resume',
+          resumeData: app.resume,
+          message: app.coverLetter || 'No cover letter provided.',
+          date: app.createdAt,
+          status: app.status
+        };
+      });
+    }
+    return [];
+  } catch (err) {
+    console.error('Error fetching applications from backend:', err);
+    return [];
+  }
+};
+
+export const uploadImageToBackend = async (file) => {
+  const token = localStorage.getItem('stryper_token');
+  if (!token) return null;
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    const res = await fetch('http://localhost:3001/api/v1/upload/image', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+    const data = await res.json();
+    if (data.success) {
+      return data.imageUrl;
+    }
+  } catch (err) {
+    console.error('Failed to upload image:', err);
+  }
+  return null;
 };

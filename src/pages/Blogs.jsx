@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ArrowLeft, BookOpen, Calendar, User, X, SlidersHorizontal, BookMarked } from 'lucide-react'
 import { getBlogs } from '../data/store'
 
@@ -8,10 +8,24 @@ const Blogs = () => {
   const [blogs, setBlogs] = useState([])
   const [activeFilter, setActiveFilter] = useState('All')
   const [selectedBlog, setSelectedBlog] = useState(null)
+  const location = useLocation()
 
   useEffect(() => {
-    setBlogs(getBlogs())
-  }, [])
+    const load = async () => {
+      const allBlogs = await getBlogs()
+      setBlogs(allBlogs)
+      
+      const queryParams = new URLSearchParams(location.search)
+      const slugToOpen = queryParams.get('slug')
+      if (slugToOpen) {
+        const found = allBlogs.find(b => b.slug === slugToOpen)
+        if (found) {
+          setSelectedBlog(found)
+        }
+      }
+    }
+    load()
+  }, [location.search])
 
   const categories = ['All', 'Residential', 'Commercial', 'Infrastructure']
 

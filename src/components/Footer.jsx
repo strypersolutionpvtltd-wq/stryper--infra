@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { getSiteSettings, getSiteSettingsSync } from '../data/store'
 import logo from '../assets/logo.png'
 import { Phone, Mail, MapPin } from 'lucide-react'
 import chairmanImg from '../assets/screenshot-footer.png'
@@ -8,6 +9,23 @@ const Footer = () => {
   const currentYear = new Date().getFullYear()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
+  const [settings, setSettings] = useState(getSiteSettingsSync())
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const data = await getSiteSettings()
+      if (data) {
+        setSettings(data)
+      }
+    }
+    loadSettings()
+
+    const handleSettingsUpdate = () => {
+      loadSettings()
+    }
+    window.addEventListener('stryper_settings_updated', handleSettingsUpdate)
+    return () => window.removeEventListener('stryper_settings_updated', handleSettingsUpdate)
+  }, [])
 
   const handleSubscribe = (e) => {
     e.preventDefault()
@@ -73,15 +91,15 @@ const Footer = () => {
           <div className="space-y-3 text-sm text-white/70">
             <div className="flex items-center gap-3">
               <Phone size={14} className="text-brand-gold" />
-              <a href="tel:+919565310410" className="hover:text-brand-gold transition-colors">+91 9565310410</a>
+              <a href={`tel:${settings.phone}`} className="hover:text-brand-gold transition-colors">{settings.phone}</a>
             </div>
             <div className="flex items-center gap-3">
               <Mail size={14} className="text-brand-gold" />
-              <a href="mailto:gc@stryperinteriorandinfra.com" className="hover:text-brand-gold transition-colors">gc@stryperinteriorandinfra.com</a>
+              <a href={`mailto:${settings.email}`} className="hover:text-brand-gold transition-colors">{settings.email}</a>
             </div>
             <div className="flex items-start gap-3">
               <MapPin size={14} className="text-brand-gold mt-1 shrink-0" />
-              <span>Jaipur, Rajasthan, India</span>
+              <span>{settings.address}</span>
             </div>
           </div>
 

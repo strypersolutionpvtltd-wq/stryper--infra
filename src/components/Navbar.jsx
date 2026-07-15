@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 import logo from '../assets/logo.png'
-import { getNotifications } from '../data/store'
+import { getNotifications, getSiteSettings, getSiteSettingsSync } from '../data/store'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [expandedMenu, setExpandedMenu] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [settings, setSettings] = useState(getSiteSettingsSync())
   
   const navigate = useNavigate()
   const location = useLocation()
@@ -22,7 +23,24 @@ const Navbar = () => {
   useEffect(() => {
     updateNotifications()
     window.addEventListener('stryper_notifications_updated', updateNotifications)
-    return () => window.removeEventListener('stryper_notifications_updated', updateNotifications)
+    
+    const loadSettings = async () => {
+      const data = await getSiteSettings()
+      if (data) {
+        setSettings(data)
+      }
+    }
+    loadSettings()
+
+    const handleSettingsUpdate = () => {
+      loadSettings()
+    }
+    window.addEventListener('stryper_settings_updated', handleSettingsUpdate)
+    
+    return () => {
+      window.removeEventListener('stryper_notifications_updated', updateNotifications)
+      window.removeEventListener('stryper_settings_updated', handleSettingsUpdate)
+    }
   }, [])
 
   useEffect(() => {
@@ -289,9 +307,9 @@ const Navbar = () => {
           <div className="h-6 w-px bg-white/10"></div>
 
           <div className="flex items-center gap-4 2xl:gap-6">
-            <a href="tel:+919565310410" className="flex items-center gap-2 text-brand-cream hover:text-brand-gold transition-colors">
+            <a href={`tel:${settings.phone}`} className="flex items-center gap-2 text-brand-cream hover:text-brand-gold transition-colors">
               <Phone size={14} className="text-brand-gold" />
-              <span className="text-xs font-black tracking-widest uppercase">+91 9565310410</span>
+              <span className="text-xs font-black tracking-widest uppercase">{settings.phone}</span>
             </a>
             <a
               href="#contact"
@@ -416,9 +434,9 @@ const Navbar = () => {
             
             <div className="h-px bg-white/10 w-full my-2"></div>
             
-            <a href="tel:+919565310410" className="flex items-center justify-center gap-2 text-brand-cream hover:text-brand-gold transition-colors font-black text-xs uppercase tracking-widest py-2">
+            <a href={`tel:${settings.phone}`} className="flex items-center justify-center gap-2 text-brand-cream hover:text-brand-gold transition-colors font-black text-xs uppercase tracking-widest py-2">
               <Phone size={16} className="text-brand-gold" />
-              <span>+91 9565310410</span>
+              <span>{settings.phone}</span>
             </a>
             
             <a

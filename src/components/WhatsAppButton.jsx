@@ -1,9 +1,30 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { getSiteSettings, getSiteSettingsSync } from '../data/store'
 
 const WhatsAppButton = () => {
-  const phoneNumber = '918448590303'
+  const [settings, setSettings] = useState(getSiteSettingsSync())
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const data = await getSiteSettings()
+      if (data) {
+        setSettings(data)
+      }
+    }
+    loadSettings()
+
+    const handleSettingsUpdate = () => {
+      loadSettings()
+    }
+    window.addEventListener('stryper_settings_updated', handleSettingsUpdate)
+    return () => window.removeEventListener('stryper_settings_updated', handleSettingsUpdate)
+  }, [])
+
+  const whatsappNum = settings?.whatsapp || '918448590303'
+  const rawPhone = String(whatsappNum).replace(/[^0-9]/g, '')
+  const phoneNumber = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone
   const message = encodeURIComponent('Hi! I would like to know more about your interior and infrastructure services.')
   
   return (

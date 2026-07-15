@@ -10,7 +10,10 @@ const ProjectGallery = () => {
   const location = useLocation()
 
   useEffect(() => {
-    setProjects(getProjects())
+    const load = async () => {
+      setProjects(await getProjects())
+    }
+    load()
   }, [])
 
   // Parse query parameters for pre-selected category

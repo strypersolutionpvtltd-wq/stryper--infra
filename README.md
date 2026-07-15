@@ -1,164 +1,92 @@
-# Stryper Interior & Infra Website
+# Stryper Interior & Infra — Full Stack Project
 
-A production-ready, premium React + Vite website for Stryper Interior & Infra - a luxury interior design and infrastructure company.
+## Project Structure
 
-## 🌟 Features
+```
+stryper--infra/
+├── frontend/    ← React + Vite frontend (TailwindCSS, Framer Motion)
+└── backend/     ← Node.js + Express REST API (SQLite, JWT, Multer)
+```
 
-- **Modern Tech Stack**: React 19 + Vite for blazing fast performance
-- **Responsive Design**: Mobile-first approach, fully responsive across all devices
-- **Smooth Animations**: Framer Motion for elegant, lightweight animations
-- **SEO Optimized**: Complete meta tags, semantic HTML, and optimized content
-- **Performance Focused**: Lazy loading, code splitting, optimized images
-- **Premium UI/UX**: Luxury design with gold accents and professional aesthetics
-
-## 🎨 Design System
-
-### Colors
-- **Primary**: #062F33 (Deep Teal)
-- **Secondary**: #0B3D40 (Teal)
-- **Luxury Gold**: #D4AF37
-- **Light Gold**: #E5C878
-- **Text Gray**: #D9D9D9
-
-### Typography
-- **Headings**: Playfair Display (Serif)
-- **Body**: Poppins (Sans-serif)
-
-## 📦 Tech Stack
-
-- **React 19.2.6** - Modern React with latest features
-- **Vite 8.0.12** - Next generation frontend tooling
-- **React Router DOM** - Client-side routing
-- **Framer Motion** - Animation library
-- **Tailwind CSS** - Utility-first CSS framework
-- **Lucide React** - Beautiful icon library
+---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
+### Frontend
 
-### Installation
-
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Run development server**
-   ```bash
-   npm run dev
-   ```
-   The site will be available at `http://localhost:5173`
-
-3. **Build for production**
-   ```bash
-   npm run build
-   ```
-
-4. **Preview production build**
-   ```bash
-   npm run preview
-   ```
-
-## 📁 Project Structure
-
+```bash
+cd frontend
+npm install
+npm run dev
 ```
-stryper-interior/
-├── public/                  # Static assets
-├── src/
-│   ├── components/         # Reusable components
-│   │   ├── Navbar.jsx
-│   │   ├── Footer.jsx
-│   │   ├── Hero.jsx
-│   │   ├── About.jsx
-│   │   ├── Services.jsx
-│   │   ├── Industries.jsx
-│   │   ├── Projects.jsx
-│   │   ├── Clients.jsx
-│   │   ├── VisionMission.jsx
-│   │   ├── BrandPartners.jsx
-│   │   ├── Testimonials.jsx
-│   │   ├── Process.jsx
-│   │   ├── CTA.jsx
-│   │   ├── Contact.jsx
-│   │   ├── WhatsAppButton.jsx
-│   │   └── ScrollToTop.jsx
-│   ├── pages/              # Page components
-│   │   └── Home.jsx
-│   ├── App.jsx             # Main app component
-│   ├── main.jsx            # Entry point
-│   └── index.css           # Global styles
-├── index.html              # HTML template
-├── tailwind.config.js      # Tailwind configuration
-├── postcss.config.js       # PostCSS configuration
-├── vite.config.js          # Vite configuration
-└── package.json            # Dependencies
+Opens at **http://localhost:5173**
+
+---
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run dev     # (uses nodemon for hot reload)
+# or
+npm start       # (production)
+```
+API runs at **http://localhost:3001**
+
+> Copy `backend/.env.example` to `backend/.env` and fill in your values before starting.
+
+---
+
+## 🔌 API Overview
+
+| Resource | Endpoint | Public | Admin |
+|---|---|---|---|
+| Projects | `/api/projects` | GET | POST, DELETE |
+| Blogs | `/api/blogs` | GET | POST, DELETE |
+| Testimonials | `/api/testimonials` | GET | POST, DELETE |
+| Inquiries | `/api/inquiries` | POST | GET, PATCH, DELETE |
+| Careers | `/api/careers` | POST | GET, PATCH, DELETE |
+| Notifications | `/api/notifications` | — | ALL |
+| Stats | `/api/stats` | POST /increment | GET |
+| Auth | `/api/auth/login` | POST | — |
+| Upload | `/api/upload/image` | — | POST |
+| Upload | `/api/upload/resume` | POST | — |
+
+### Admin Authentication
+Send `Authorization: Bearer <token>` header with your JWT for all admin routes.
+
+Get a token via:
+```
+POST /api/auth/login
+{ "password": "infra@@2026" }
 ```
 
-## 🎯 Key Sections
+---
 
-1. **Hero Section** - Full-screen hero with statistics
-2. **About Section** - Company overview and features
-3. **Services Section** - 5 main service offerings
-4. **Industries Section** - 6 industries served
-5. **Projects Section** - Portfolio gallery with filtering
-6. **Clients Section** - Auto-scrolling client showcase
-7. **Vision & Mission** - Company values and goals
-8. **Brand Partners** - Trusted partner brands
-9. **Testimonials** - Client reviews slider
-10. **Process Section** - 5-step workflow
-11. **CTA Section** - Call-to-action banner
-12. **Contact Section** - Contact form and information
+## 🗄️ Database
 
-## 🔧 Configuration
+SQLite file stored at `backend/db/stryper.db` (auto-created on first run).  
+Pre-seeded with 8 projects, 6 testimonials, 3 blogs, 2 sample inquiries, and 1 career application.
 
-### Tailwind Colors
-Edit `tailwind.config.js` to customize the color palette.
+---
 
-### Contact Information
-Update contact details in:
-- `src/components/Contact.jsx`
-- `src/components/Footer.jsx`
-- `src/components/WhatsAppButton.jsx`
+## 📁 Uploaded Files
 
-### SEO
-Update meta tags in `index.html` for better SEO.
+All uploads stored in `backend/uploads/`:
+- `uploads/images/` — project/blog images
+- `uploads/resumes/` — career application resumes
 
-## 📱 Responsive Breakpoints
+Served statically at `http://localhost:3001/uploads/...`
 
-- **Mobile**: < 768px
-- **Tablet**: 768px - 1024px
-- **Desktop**: > 1024px
+---
 
-## ⚡ Performance Optimization
+## 🛠️ Tech Stack
 
-- Lazy loading for images
-- Code splitting with React.lazy()
-- Optimized animations
-- Compressed assets
-- Minimal bundle size
-
-## 🌐 Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## 📄 License
-
-© 2026 Stryper Interior & Infra. All rights reserved.
-
-## 📞 Contact
-
-- **Phone**: +91 9565310410
-- **Email**: info@stryperinterior.com
-- **Website**: www.stryperinterior.com
-
-## 🙏 Credits
-
-- Images: Unsplash (placeholder images)
-- Icons: Lucide React
-- Fonts: Google Fonts (Playfair Display, Poppins)
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, Vite, TailwindCSS v4, Framer Motion |
+| Backend | Node.js, Express 4 |
+| Database | SQLite (better-sqlite3) |
+| Auth | JWT (jsonwebtoken) |
+| File Upload | Multer |

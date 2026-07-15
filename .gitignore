@@ -1,26 +1,43 @@
-# Logs
-logs
+# ─── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ─── Environment files (NEVER commit secrets) ─────────────────────────────────
+.env
+.env.local
+.env.*.local
+# backend/.env already covered above
+
+# ─── Build outputs ────────────────────────────────────────────────────────────
+dist/
+build/
+.vite/
+
+# ─── Database files ───────────────────────────────────────────────────────────
+backend/db/stryper.db
+backend/db/stryper.db-shm
+backend/db/stryper.db-wal
+backend/db/stryper.json
+
+# ─── Uploaded files (served from Cloudinary in production) ────────────────────
+backend/uploads/images/*
+backend/uploads/resumes/*
+!backend/uploads/images/.gitkeep
+!backend/uploads/resumes/.gitkeep
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ─── OS files ────────────────────────────────────────────────────────────────
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
 
-.vercel
+# ─── Editor ──────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+
+# ─── Vite / React ────────────────────────────────────────────────────────────
+*.local

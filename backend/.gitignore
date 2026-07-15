@@ -1,0 +1,6 @@
+node_modules/
+.env
+uploads/
+db/stryper.db
+db/stryper.db-shm
+db/stryper.db-wal

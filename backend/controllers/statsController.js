@@ -45,8 +45,8 @@ const getStats = async (req, res) => {
       Career.countDocuments(),
       Inquiry.countDocuments({ status: 'new' }),
       Career.countDocuments({ status: 'new' }),
-      Visit.distinct('sessionId').then(ids => ids.length),  // unique visitors
-      Visit.countDocuments()                                  // total pageviews
+      Visit.distinct('ip').then(ips => ips.length),  // unique visitors by IP
+      Visit.countDocuments()                          // total pageviews
     ]);
 
     res.json({
@@ -75,16 +75,46 @@ const getVisitDetails = async (req, res) => {
     const skip  = (page - 1) * limit;
     const type  = req.query.type || 'all'; // 'all' | 'unique'
 
-    let query = {};
+    let visits = [];
+    let total = 0;
 
-    const [visits, total] = await Promise.all([
-      Visit.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Visit.countDocuments(query)
-    ]);
+    if (type === 'unique') {
+      // Group by IP, get the latest document for each unique IP
+      const pipeline = [
+        { $sort: { createdAt: -1 } },
+        {
+          $group: {
+            _id: "$ip",
+            latestVisit: { $first: "$$ROOT" }
+          }
+        },
+        { $replaceRoot: { newRoot: "$latestVisit" } },
+        { $sort: { createdAt: -1 } }
+      ];
+
+      const countPipeline = [
+        { $group: { _id: "$ip" } },
+        { $count: "count" }
+      ];
+
+      const [countResult, paginatedVisits] = await Promise.all([
+        Visit.aggregate(countPipeline),
+        Visit.aggregate([...pipeline, { $skip: skip }, { $limit: limit }])
+      ]);
+
+      total = countResult[0] ? countResult[0].count : 0;
+      visits = paginatedVisits;
+    } else {
+      // type === 'all'
+      [visits, total] = await Promise.all([
+        Visit.find({})
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Visit.countDocuments({})
+      ]);
+    }
 
     // Format to IST (UTC+5:30)
     const IST_OFFSET = 5.5 * 60 * 60 * 1000;

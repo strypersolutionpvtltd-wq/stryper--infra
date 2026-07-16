@@ -300,9 +300,9 @@ export const getStats = async () => {
 }
 
 // Get detailed visitor list for admin modal
-export const getVisitDetails = async (page = 1, limit = 50) => {
+export const getVisitDetails = async (type = 'all', page = 1, limit = 50) => {
   try {
-    const data = await api(`/stats/visits?page=${page}&limit=${limit}`, {
+    const data = await api(`/stats/visits?type=${type}&page=${page}&limit=${limit}`, {
       headers: authHeaders()
     })
     return data.success ? data.data : null

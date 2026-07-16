@@ -723,7 +723,7 @@ const Admin = () => {
                 <button
                   onClick={async () => {
                     setVisitModal({ open: true, type: 'visitors', data: null, loading: true })
-                    const result = await getVisitDetails(1, 100)
+                    const result = await getVisitDetails('unique', 1, 100)
                     setVisitModal({ open: true, type: 'visitors', data: result, loading: false })
                   }}
                   className="bg-white p-6 border border-black/5 shadow-md flex items-center justify-between cursor-pointer hover:border-brand-gold/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 w-full text-left group"
@@ -740,7 +740,7 @@ const Admin = () => {
                 <button
                   onClick={async () => {
                     setVisitModal({ open: true, type: 'pageviews', data: null, loading: true })
-                    const result = await getVisitDetails(1, 100)
+                    const result = await getVisitDetails('all', 1, 100)
                     setVisitModal({ open: true, type: 'pageviews', data: result, loading: false })
                   }}
                   className="bg-white p-6 border border-black/5 shadow-md flex items-center justify-between cursor-pointer hover:border-brand-gold/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 w-full text-left group"

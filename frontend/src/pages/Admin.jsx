@@ -15,6 +15,7 @@ import {
   getCareers, deleteCareer as apiDeleteCareer, updateCareerStatus,
   getNotifications, getUnreadCount, markAllNotificationsRead, clearAllNotifications,
   getStats,
+  getVisitDetails,
   uploadImage
 } from '../services/api'
 // store.js fully removed — all data via api.js
@@ -118,6 +119,7 @@ const Admin = () => {
   const [selectedInquiry, setSelectedInquiry] = useState(null)
   const [selectedCareer, setSelectedCareer] = useState(null)
   const [traffic, setTraffic] = useState({ visitors: 0, pageviews: 0 })
+  const [visitModal, setVisitModal] = useState({ open: false, type: '', data: null, loading: false })
 
   // Load all data from MongoDB via API
   const loadData = async () => {
@@ -716,27 +718,130 @@ const Admin = () => {
                 </button>
               </div>
 
-              {/* Site Traffic & Visitors */}
+              {/* Site Traffic & Visitors — Clickable for detail */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="bg-white p-6 border border-black/5 shadow-md flex items-center justify-between">
+                <button
+                  onClick={async () => {
+                    setVisitModal({ open: true, type: 'visitors', data: null, loading: true })
+                    const result = await getVisitDetails(1, 100)
+                    setVisitModal({ open: true, type: 'visitors', data: result, loading: false })
+                  }}
+                  className="bg-white p-6 border border-black/5 shadow-md flex items-center justify-between cursor-pointer hover:border-brand-gold/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 w-full text-left group"
+                >
                   <div>
-                    <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block">Total Unique Visitors</span>
+                    <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block group-hover:text-black transition-colors">Total Unique Visitors</span>
                     <span className="text-3xl font-black text-black mt-2 block font-serif">{traffic.visitors}</span>
+                    <span className="text-[10px] text-black/40 mt-1 block">Click to view details →</span>
                   </div>
-                  <div className="w-12 h-12 bg-brand-gold/10 text-brand-gold flex items-center justify-center rounded-full">
+                  <div className="w-12 h-12 bg-brand-gold/10 text-brand-gold flex items-center justify-center rounded-full group-hover:bg-brand-gold group-hover:text-white transition-all">
                     <User size={20} />
                   </div>
-                </div>
-                <div className="bg-white p-6 border border-black/5 shadow-md flex items-center justify-between">
+                </button>
+                <button
+                  onClick={async () => {
+                    setVisitModal({ open: true, type: 'pageviews', data: null, loading: true })
+                    const result = await getVisitDetails(1, 100)
+                    setVisitModal({ open: true, type: 'pageviews', data: result, loading: false })
+                  }}
+                  className="bg-white p-6 border border-black/5 shadow-md flex items-center justify-between cursor-pointer hover:border-brand-gold/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 w-full text-left group"
+                >
                   <div>
-                    <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block">Total Page Views</span>
+                    <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block group-hover:text-black transition-colors">Total Page Views</span>
                     <span className="text-3xl font-black text-black mt-2 block font-serif">{traffic.pageviews}</span>
+                    <span className="text-[10px] text-black/40 mt-1 block">Click to view details →</span>
                   </div>
-                  <div className="w-12 h-12 bg-brand-gold/10 text-brand-gold flex items-center justify-center rounded-full">
+                  <div className="w-12 h-12 bg-brand-gold/10 text-brand-gold flex items-center justify-center rounded-full group-hover:bg-brand-gold group-hover:text-white transition-all">
                     <Globe size={20} />
                   </div>
-                </div>
+                </button>
               </div>
+
+              {/* Visitor Detail Modal */}
+              {visitModal.open && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setVisitModal({ open: false, type: '', data: null, loading: false })}>
+                  <div className="bg-white w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-black/10 bg-black text-white">
+                      <div>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-brand-gold">
+                          {visitModal.type === 'visitors' ? '👥 Unique Visitor Details' : '📄 Page View Details'}
+                        </h2>
+                        <p className="text-xs text-white/50 mt-0.5">All times shown in Indian Standard Time (IST)</p>
+                      </div>
+                      <button onClick={() => setVisitModal({ open: false, type: '', data: null, loading: false })} className="text-white/60 hover:text-white transition-colors">
+                        <X size={20} />
+                      </button>
+                    </div>
+
+                    {/* Modal Body */}
+                    <div className="overflow-auto flex-1">
+                      {visitModal.loading ? (
+                        <div className="flex items-center justify-center h-48">
+                          <div className="w-8 h-8 border-4 border-brand-gold border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      ) : visitModal.data?.visits?.length > 0 ? (
+                        <table className="w-full text-xs">
+                          <thead className="bg-[#F7F4EF] sticky top-0">
+                            <tr>
+                              {['#', 'Page URL', 'Browser', 'OS', 'Device', 'IP Address', 'Referrer', 'Time (IST)'].map(h => (
+                                <th key={h} className="text-left px-4 py-3 font-black uppercase tracking-wider text-black/60 whitespace-nowrap border-b border-black/10">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {visitModal.data.visits.map((v, i) => {
+                              // Browser icon emoji
+                              const browserIcon = v.browser.includes('Chrome') ? '🌐'
+                                : v.browser.includes('Firefox') ? '🦊'
+                                : v.browser.includes('Edge') ? '🔷'
+                                : v.browser.includes('Safari') ? '🧭'
+                                : v.browser.includes('Opera') ? '🔴' : '🌐'
+                              const deviceIcon = v.device === 'Mobile' ? '📱' : v.device === 'Tablet' ? '📲' : '💻'
+                              return (
+                                <tr key={v._id} className={`border-b border-black/5 hover:bg-brand-gold/5 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-[#fafaf8]'}`}>
+                                  <td className="px-4 py-3 text-black/40 font-mono">{i + 1}</td>
+                                  <td className="px-4 py-3 font-mono text-black/70 max-w-[180px] truncate" title={v.url}>{v.url}</td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <span className="flex items-center gap-1.5">
+                                      <span>{browserIcon}</span>
+                                      <span className="font-semibold text-black">{v.browser}</span>
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap text-black/70">{v.os}</td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <span className="flex items-center gap-1">{deviceIcon} {v.device}</span>
+                                  </td>
+                                  <td className="px-4 py-3 font-mono text-black/50">{v.ip}</td>
+                                  <td className="px-4 py-3 text-black/50 max-w-[120px] truncate" title={v.referrer}>{v.referrer}</td>
+                                  <td className="px-4 py-3 whitespace-nowrap text-black/70 font-mono text-[10px]">{v.visitedAt}</td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <div className="flex items-center justify-center h-48 text-black/40">
+                          <div className="text-center">
+                            <Globe size={32} className="mx-auto mb-3 opacity-30" />
+                            <p className="text-sm font-semibold">No visit data yet</p>
+                            <p className="text-xs mt-1">Visits will appear here once users browse the site</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Modal Footer */}
+                    {visitModal.data && (
+                      <div className="px-6 py-3 border-t border-black/10 bg-[#F7F4EF] flex items-center justify-between">
+                        <span className="text-xs text-black/50">
+                          Showing {visitModal.data.visits?.length || 0} of {visitModal.data.total || 0} records
+                        </span>
+                        <span className="text-xs text-black/40">All times in IST (UTC+5:30)</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Notifications panel */}
               <div className="bg-white p-6 sm:p-8 border border-black/5 shadow-md space-y-6">

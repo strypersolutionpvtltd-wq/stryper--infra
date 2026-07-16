@@ -299,6 +299,37 @@ export const getStats = async () => {
   } catch { return null }
 }
 
+// Get detailed visitor list for admin modal
+export const getVisitDetails = async (page = 1, limit = 50) => {
+  try {
+    const data = await api(`/stats/visits?page=${page}&limit=${limit}`, {
+      headers: authHeaders()
+    })
+    return data.success ? data.data : null
+  } catch { return null }
+}
+
+// Track a page visit — called from App.jsx on every route change
+export const trackVisit = async (url) => {
+  try {
+    // Get or create a persistent session ID for this browser session
+    let sessionId = sessionStorage.getItem('stryper_sid')
+    if (!sessionId) {
+      sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+      sessionStorage.setItem('stryper_sid', sessionId)
+    }
+    await fetch('/api/stats/increment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: url || window.location.pathname,
+        sessionId,
+        referrer: document.referrer || 'Direct'
+      })
+    })
+  } catch { /* never break UX */ }
+}
+
 // ─── IMAGE UPLOAD → CLOUDINARY ────────────────────────────────────────────────
 export const uploadImage = async (file) => {
   try {

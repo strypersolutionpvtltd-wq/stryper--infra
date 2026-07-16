@@ -1,27 +1,52 @@
-const Project  = require('../models/Project');
-const Blog     = require('../models/Blog');
-const Inquiry  = require('../models/Inquiry');
-const Career   = require('../models/Career');
-const Visit    = require('../models/Visit');
+const Project      = require('../models/Project');
+const Blog         = require('../models/Blog');
+const Inquiry      = require('../models/Inquiry');
+const Career       = require('../models/Career');
+const Visit        = require('../models/Visit');
 
-// GET /api/stats — admin only
+// ─── UA Parser helper (no external lib needed) ────────────────────────────────
+const parseUserAgent = (ua = '') => {
+  // Browser detection
+  let browser = 'Unknown';
+  if (ua.includes('Edg/') || ua.includes('Edge/'))   browser = 'Microsoft Edge';
+  else if (ua.includes('OPR/') || ua.includes('Opera')) browser = 'Opera';
+  else if (ua.includes('Chrome/') && !ua.includes('Chromium')) browser = 'Chrome';
+  else if (ua.includes('Firefox/'))  browser = 'Firefox';
+  else if (ua.includes('Safari/') && !ua.includes('Chrome')) browser = 'Safari';
+  else if (ua.includes('MSIE') || ua.includes('Trident/')) browser = 'Internet Explorer';
+  else if (ua.includes('Chromium')) browser = 'Chromium';
+
+  // OS detection
+  let os = 'Unknown';
+  if (ua.includes('Windows NT 10.0')) os = 'Windows 11/10';
+  else if (ua.includes('Windows NT 6.3')) os = 'Windows 8.1';
+  else if (ua.includes('Windows NT 6.1')) os = 'Windows 7';
+  else if (ua.includes('Windows'))    os = 'Windows';
+  else if (ua.includes('Mac OS X'))   os = 'macOS';
+  else if (ua.includes('Android'))    os = 'Android';
+  else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+  else if (ua.includes('Linux'))      os = 'Linux';
+
+  // Device detection
+  let device = 'Desktop';
+  if (ua.includes('Mobile') || ua.includes('iPhone') || ua.includes('Android Mobile')) device = 'Mobile';
+  else if (ua.includes('iPad') || ua.includes('Tablet')) device = 'Tablet';
+
+  return { browser, os, device };
+};
+
+// ─── GET /api/stats  — admin only ─────────────────────────────────────────────
 const getStats = async (req, res) => {
   try {
-    const [
-      projects, blogs, inquiries, careers,
-      newInquiries, newCareers,
-      pageviews, visitors
-    ] = await Promise.all([
+    const [projects, blogs, inquiries, careers, newInquiries, newCareers, totalVisits, totalPageviews] = await Promise.all([
       Project.countDocuments(),
       Blog.countDocuments(),
       Inquiry.countDocuments(),
       Career.countDocuments(),
       Inquiry.countDocuments({ status: 'new' }),
       Career.countDocuments({ status: 'new' }),
-      // Total pageviews = total visit records
-      Visit.countDocuments(),
-      // Unique visitors = distinct sessionIds
-      Visit.distinct('sessionId').then(ids => ids.filter(id => id).length)
+      Visit.distinct('sessionId').then(ids => ids.length),  // unique visitors
+      Visit.countDocuments()                                  // total pageviews
     ]);
 
     res.json({
@@ -33,8 +58,8 @@ const getStats = async (req, res) => {
         careers,
         newInquiries,
         newCareers,
-        visitors,
-        pageviews
+        visitors:  totalVisits,
+        pageviews: totalPageviews
       }
     });
   } catch (err) {
@@ -42,20 +67,77 @@ const getStats = async (req, res) => {
   }
 };
 
-// POST /api/stats/increment — public (called on every page load)
+// ─── GET /api/stats/visits  — admin only — detailed visitor list ──────────────
+const getVisitDetails = async (req, res) => {
+  try {
+    const page  = parseInt(req.query.page  || '1', 10);
+    const limit = parseInt(req.query.limit || '50', 10);
+    const skip  = (page - 1) * limit;
+    const type  = req.query.type || 'all'; // 'all' | 'unique'
+
+    let query = {};
+
+    const [visits, total] = await Promise.all([
+      Visit.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Visit.countDocuments(query)
+    ]);
+
+    // Format to IST (UTC+5:30)
+    const IST_OFFSET = 5.5 * 60 * 60 * 1000;
+    const formatted = visits.map(v => ({
+      _id:       v._id,
+      url:       v.url,
+      ip:        v.ip === '::1' ? 'localhost' : v.ip,
+      browser:   v.browser || 'Unknown',
+      os:        v.os     || 'Unknown',
+      device:    v.device || 'Desktop',
+      referrer:  v.referrer || 'Direct',
+      sessionId: v.sessionId,
+      // IST time
+      visitedAt: new Date(new Date(v.createdAt).getTime() + IST_OFFSET)
+        .toISOString()
+        .replace('T', ' ')
+        .replace('Z', '')
+        .split('.')[0] + ' IST'
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        visits: formatted,
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─── POST /api/stats/increment  — public (called on every page visit) ─────────
 const incrementPageview = async (req, res) => {
   try {
-    const { url = '/', sessionId = '' } = req.body;
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
-            || req.socket?.remoteAddress
-            || '';
+    const ua        = req.headers['user-agent'] || '';
+    const { browser, os, device } = parseUserAgent(ua);
+    const ip        = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+                      || req.socket?.remoteAddress
+                      || 'unknown';
+    const url       = req.body?.url || '/';
+    const sessionId = req.body?.sessionId || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const referrer  = req.body?.referrer || req.headers['referer'] || 'Direct';
 
-    await Visit.create({ url, sessionId, ip });
+    await Visit.create({ url, sessionId, ip, browser, os, device, userAgent: ua, referrer });
+
     res.json({ success: true });
   } catch (err) {
-    // Never fail silently — analytics should never break the site
+    // Never let tracking errors break the user experience
     res.json({ success: true });
   }
 };
 
-module.exports = { getStats, incrementPageview };
+module.exports = { getStats, getVisitDetails, incrementPageview };

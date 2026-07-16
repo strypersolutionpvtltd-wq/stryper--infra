@@ -4,7 +4,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import WhatsAppButton from './components/WhatsAppButton'
 import ScrollToTop from './components/ScrollToTop'
-import { incrementVisitorCount } from './data/store'
+import { trackVisit } from './services/api'
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'))
@@ -22,8 +22,12 @@ function App() {
   const isAdminPath = location.pathname.toLowerCase().startsWith('/admin')
 
   useEffect(() => {
-    incrementVisitorCount()
-  }, [location])
+    // Track every page visit except admin panel visits
+    if (!isAdminPath) {
+      trackVisit(location.pathname)
+    }
+  }, [location.pathname])
+
 
   return (
     <div className="min-h-screen bg-brand-cream">

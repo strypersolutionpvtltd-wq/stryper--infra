@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useLocation } from 'react-router-dom'
 import { ArrowLeft, BookOpen, Calendar, User, X, SlidersHorizontal, BookMarked } from 'lucide-react'
-import { getBlogs } from '../data/store'
+import { getBlogs } from '../services/api'
 
 const Blogs = () => {
   const [blogs, setBlogs] = useState([])

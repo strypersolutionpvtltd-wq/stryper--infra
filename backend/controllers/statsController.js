@@ -1,18 +1,27 @@
-const Project      = require('../models/Project');
-const Blog         = require('../models/Blog');
-const Inquiry      = require('../models/Inquiry');
-const Career       = require('../models/Career');
+const Project  = require('../models/Project');
+const Blog     = require('../models/Blog');
+const Inquiry  = require('../models/Inquiry');
+const Career   = require('../models/Career');
+const Visit    = require('../models/Visit');
 
-// GET /api/stats  — admin only
+// GET /api/stats — admin only
 const getStats = async (req, res) => {
   try {
-    const [projects, blogs, inquiries, careers, newInquiries, newCareers] = await Promise.all([
+    const [
+      projects, blogs, inquiries, careers,
+      newInquiries, newCareers,
+      pageviews, visitors
+    ] = await Promise.all([
       Project.countDocuments(),
       Blog.countDocuments(),
       Inquiry.countDocuments(),
       Career.countDocuments(),
       Inquiry.countDocuments({ status: 'new' }),
-      Career.countDocuments({ status: 'new' })
+      Career.countDocuments({ status: 'new' }),
+      // Total pageviews = total visit records
+      Visit.countDocuments(),
+      // Unique visitors = distinct sessionIds
+      Visit.distinct('sessionId').then(ids => ids.filter(id => id).length)
     ]);
 
     res.json({
@@ -24,10 +33,8 @@ const getStats = async (req, res) => {
         careers,
         newInquiries,
         newCareers,
-        // Visitor stats will come from Cloudflare/Vercel Analytics in production
-        // For now returning placeholder values
-        visitors: 114,
-        pageviews: 254
+        visitors,
+        pageviews
       }
     });
   } catch (err) {
@@ -35,10 +42,20 @@ const getStats = async (req, res) => {
   }
 };
 
-// POST /api/stats/increment  — public (page visit tracking placeholder)
+// POST /api/stats/increment — public (called on every page load)
 const incrementPageview = async (req, res) => {
-  // In production, use analytics service (Cloudflare, Vercel, Plausible etc.)
-  res.json({ success: true });
+  try {
+    const { url = '/', sessionId = '' } = req.body;
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+            || req.socket?.remoteAddress
+            || '';
+
+    await Visit.create({ url, sessionId, ip });
+    res.json({ success: true });
+  } catch (err) {
+    // Never fail silently — analytics should never break the site
+    res.json({ success: true });
+  }
 };
 
 module.exports = { getStats, incrementPageview };

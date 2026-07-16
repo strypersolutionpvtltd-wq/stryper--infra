@@ -26,19 +26,25 @@ const uploadImage = multer({
   }
 });
 
-// ─── Resume Upload → Cloudinary (raw resource type) ───────────────────────────
-// Resumes go to Cloudinary under "stryper/resumes" folder as raw files
-const resumeStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'stryper/resumes',
-    resource_type: 'raw',
-    allowed_formats: ['pdf', 'doc', 'docx']
+// ─── Resume Upload → Local Disk ───────────────────────────────────────────────
+// Resumes stored locally — served via /uploads/resumes/ static route
+const path = require('path');
+const fs = require('fs');
+
+const resumesDir = path.join(__dirname, '../uploads/resumes');
+if (!fs.existsSync(resumesDir)) fs.mkdirSync(resumesDir, { recursive: true });
+
+const diskStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, resumesDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
+    cb(null, `${base}_${Date.now()}${ext}`);
   }
 });
 
 const uploadResume = multer({
-  storage: resumeStorage,
+  storage: diskStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     const allowed = [

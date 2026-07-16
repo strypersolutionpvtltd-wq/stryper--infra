@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Star, Quote } from 'lucide-react'
-import { getTestimonials } from '../data/store'
+import { getTestimonials } from '../services/api'
 
 const Testimonials = () => {
   const [testimonials, setTestimonials] = useState([])

@@ -7,21 +7,38 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ─── MongoDB Connection ────────────────────────────────────────────────────────
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
+// ─── MongoDB Connection (with auto-reconnect) ──────────────────────────────────
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS:          45000,
+      connectTimeoutMS:         10000,
+      heartbeatFrequencyMS:     10000,
+    });
     console.log('✅  MongoDB connected successfully');
-    // Seed default data if collections are empty
     require('./db/seed');
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error('❌  MongoDB connection error:', err.message);
-    process.exit(1);
-  });
+    console.log('🔄  Retrying MongoDB in 5 seconds...');
+    setTimeout(connectDB, 5000);
+  }
+};
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠️  MongoDB disconnected — reconnecting...');
+  setTimeout(connectDB, 3000);
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB error:', err.message);
+});
+
+connectDB();
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5175',
   credentials: true
 }));
 app.use(express.json({ limit: '20mb' }));
@@ -40,8 +57,9 @@ app.use('/api/careers',       require('./routes/careers'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/stats',         require('./routes/stats'));
 app.use('/api/upload',        require('./routes/upload'));
+app.use('/api/settings',      require('./routes/settings'));
 
-// ─── Health Check ──────────────────────────────────────────────────────────────
+// ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.json({
     status: 'ok',
@@ -51,16 +69,56 @@ app.get('/', (req, res) => {
   });
 });
 
-// ─── Global Error Handler ──────────────────────────────────────────────────────
+// ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.message);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal Server Error'
-  });
+  if (!res.headersSent) {
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message || 'Internal Server Error'
+    });
+  }
 });
 
-// ─── Start Server ──────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`✅  Stryper backend running at http://localhost:${PORT}`);
+// ─── Catch unhandled promise rejections — prevent crash ───────────────────────
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Promise Rejection:', reason);
+  // Do NOT exit — keep server running
 });
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err.message);
+  // Do NOT exit for non-fatal errors
+});
+
+// ─── Start Server ─────────────────────────────────────────────────────────────
+const startServer = () => {
+  const server = app.listen(PORT, () => {
+    console.log(`✅  Stryper backend running at http://localhost:${PORT}`);
+  });
+
+  // Increase keep-alive and timeout to prevent ECONNRESET
+  server.keepAliveTimeout = 65000;
+  server.headersTimeout   = 66000;
+  server.timeout          = 60000;
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`⚠️  Port ${PORT} busy — killing existing process...`);
+      const { exec } = require('child_process');
+      const killCmd = process.platform === 'win32'
+        ? `FOR /F "tokens=5" %i IN ('netstat -aon ^| findstr :${PORT} ^| findstr LISTENING') DO taskkill /PID %i /F`
+        : `fuser -k ${PORT}/tcp`;
+      exec(killCmd, () => {
+        setTimeout(() => {
+          console.log(`🔄  Retrying on port ${PORT}...`);
+          startServer();
+        }, 1500);
+      });
+    } else {
+      console.error('Server error:', err.message);
+    }
+  });
+};
+
+startServer();

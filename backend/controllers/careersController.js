@@ -23,6 +23,7 @@ const create = async (req, res) => {
     let resumePath = '';
     if (req.file) {
       resumeName = req.file.originalname;
+      // Local file — accessible via /uploads/resumes/filename
       resumePath = `/uploads/resumes/${req.file.filename}`;
     }
 

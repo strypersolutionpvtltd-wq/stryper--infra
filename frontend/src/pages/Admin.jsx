@@ -6,21 +6,18 @@ import {
   Lock, Menu
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { 
+import {
+  loginAdmin, logoutAdmin,
   getProjects, addProject, deleteProject,
   getBlogs, addBlog, deleteBlog,
   getTestimonials, addTestimonial, deleteTestimonial,
-  getInquiries, getCareers, 
-  getNotifications, markNotificationsAsRead, clearNotifications,
-  getTrafficStats,
-  getAdminPassword, updateAdminPassword,
-  getSiteSettings, updateSiteSettings,
-  loginAdminBackend, changeAdminPasswordBackend,
-  fetchStatsFromBackend, fetchCareersFromBackend,
-  deleteInquiryBackend, updateInquiryStatusBackend,
-  deleteCareerBackend, updateCareerStatusBackend,
-  uploadImageToBackend
-} from '../data/store'
+  getInquiries, submitInquiry, deleteInquiry as apiDeleteInquiry, updateInquiryStatus,
+  getCareers, deleteCareer as apiDeleteCareer, updateCareerStatus,
+  getNotifications, getUnreadCount, markAllNotificationsRead, clearAllNotifications,
+  getStats,
+  uploadImage
+} from '../services/api'
+import { getSiteSettings, updateSiteSettings, changeAdminPasswordBackend } from '../data/store'
 
 const WhatsAppIcon = ({ size = 12, className }) => (
   <svg 
@@ -36,7 +33,10 @@ const WhatsAppIcon = ({ size = 12, className }) => (
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem('stryper_admin_authenticated') === 'true'
+    // Only restore session if token exists in localStorage
+    const hasToken = !!localStorage.getItem('stryper_token')
+    const hasSession = sessionStorage.getItem('stryper_admin_authenticated') === 'true'
+    return hasToken && hasSession
   })
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
@@ -53,20 +53,13 @@ const Admin = () => {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault()
-    const backendResult = await loginAdminBackend(password)
-    if (backendResult.success) {
-      setIsAuthenticated(true)
-      sessionStorage.setItem('stryper_admin_authenticated', 'true')
-      setPasswordError('')
-      return
-    }
-
-    if (password === getAdminPassword()) {
+    const result = await loginAdmin(password)
+    if (result.success) {
       setIsAuthenticated(true)
       sessionStorage.setItem('stryper_admin_authenticated', 'true')
       setPasswordError('')
     } else {
-      setPasswordError(backendResult.message || 'Invalid Password. Please try again.')
+      setPasswordError(result.message || 'Invalid Password. Please try again.')
     }
   }
 
@@ -123,51 +116,79 @@ const Admin = () => {
   // Detail Modal State
   const [selectedInquiry, setSelectedInquiry] = useState(null)
   const [selectedCareer, setSelectedCareer] = useState(null)
-  const [traffic, setTraffic] = useState({ visitors: 114, pageviews: 254 })
+  const [traffic, setTraffic] = useState({ visitors: 0, pageviews: 0 })
 
-  // Load store data
+  // Load all data from MongoDB via API
   const loadData = async () => {
-    setProjects(await getProjects())
-    setBlogs(await getBlogs())
-    setTestimonials(await getTestimonials())
-    setInquiries(await getInquiries())
-    setNotifications(getNotifications())
-    setSettingsForm(await getSiteSettings())
-
-    const backendStats = await fetchStatsFromBackend()
-    if (backendStats) {
-      setTraffic({
-        visitors: backendStats.totalVisits || 116,
-        pageviews: backendStats.totalPageViews || 293
-      })
-    } else {
-      setTraffic(getTrafficStats())
-    }
-
-    const backendCareers = await fetchCareersFromBackend()
-    if (backendCareers && backendCareers.length > 0) {
-      setCareers(backendCareers)
-    } else {
-      const fallbackCareers = await getCareers()
-      setCareers(Array.isArray(fallbackCareers) ? fallbackCareers : [])
+    const [proj, bl, test, inq, car, notifs, stats] = await Promise.all([
+      getProjects(),
+      getBlogs(),
+      getTestimonials(),
+      getInquiries(),
+      getCareers(),
+      getNotifications(),
+      getStats()
+    ])
+    setProjects(proj)
+    setBlogs(bl)
+    setTestimonials(test)
+    setInquiries(inq)
+    setCareers(Array.isArray(car) ? car : [])
+    setNotifications(notifs)
+    if (stats) {
+      setTraffic({ visitors: stats.visitors ?? 0, pageviews: stats.pageviews ?? 0 })
     }
   }
 
   useEffect(() => {
-    loadData()
-    
-    // Listen for notification updates
-    const handleUpdates = () => {
-      loadData()
-      const list = getNotifications()
-      const unread = list.filter(n => !n.read)
-      if (unread.length > 0) {
-        showToast(unread[0].text)
+    if (!isAuthenticated) return
+
+    // Verify token is still valid on mount — auto-logout if expired
+    const verifySession = async () => {
+      try {
+        const res = await fetch('/api/auth/verify', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('stryper_token')}` }
+        })
+        if (!res.ok) {
+          // Token expired or missing — force re-login
+          setIsAuthenticated(false)
+          sessionStorage.removeItem('stryper_admin_authenticated')
+          localStorage.removeItem('stryper_token')
+          return
+        }
+        // Token valid — load data
+        loadData()
+        getSiteSettings().then(s => {
+          if (s) setSettingsForm({
+            phone: s.phone || '',
+            email: s.email || '',
+            address: s.address || '',
+            whatsapp: s.whatsapp || '',
+            est: s.est || '',
+            website: s.website || ''
+          })
+        })
+      } catch {
+        // Backend offline — still show UI with empty data
+        loadData()
       }
     }
-    window.addEventListener('stryper_notifications_updated', handleUpdates)
-    return () => window.removeEventListener('stryper_notifications_updated', handleUpdates)
-  }, [])
+
+    verifySession()
+
+    // Poll notifications every 30s only while authenticated
+    const interval = setInterval(async () => {
+      const token = localStorage.getItem('stryper_token')
+      if (!token) return
+      const count = await getUnreadCount()
+      if (count > 0) {
+        const notifs = await getNotifications()
+        setNotifications(notifs)
+      }
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [isAuthenticated])
 
   const showToast = (message, action = null) => {
     setToast(action ? { message, ...action } : message)
@@ -179,7 +200,7 @@ const Admin = () => {
     const file = e.target.files[0]
     if (file) {
       setIsUploadingImage(true)
-      const url = await uploadImageToBackend(file)
+      const url = await uploadImage(file)
       if (url) {
         setProjectImage(url)
       } else {
@@ -205,7 +226,7 @@ const Admin = () => {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0]
       setIsUploadingImage(true)
-      const url = await uploadImageToBackend(file)
+      const url = await uploadImage(file)
       if (url) {
         setProjectImage(url)
       } else {
@@ -222,7 +243,7 @@ const Admin = () => {
     const file = e.target.files[0]
     if (file) {
       setIsUploadingImage(true)
-      const url = await uploadImageToBackend(file)
+      const url = await uploadImage(file)
       if (url) {
         setBlogImage(url)
       } else {
@@ -248,7 +269,7 @@ const Admin = () => {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0]
       setIsUploadingImage(true)
-      const url = await uploadImageToBackend(file)
+      const url = await uploadImage(file)
       if (url) {
         setBlogImage(url)
       } else {
@@ -264,7 +285,7 @@ const Admin = () => {
   const handleProjectSubmit = async (e) => {
     e.preventDefault()
     if (!projectImage) {
-      alert('Please upload/drop an image for the project.')
+      alert('Please upload or paste an image URL for the project.')
       return
     }
 
@@ -273,7 +294,7 @@ const Admin = () => {
       .map(item => item.trim())
       .filter(item => item.length > 0)
 
-    await addProject({
+    const result = await addProject({
       title: projectForm.title,
       category: projectForm.category,
       location: projectForm.location,
@@ -285,8 +306,14 @@ const Admin = () => {
       image: projectImage
     })
 
+    if (!result || !result.success) {
+      alert(result?.message || 'Failed to publish project. Please try again.')
+      return
+    }
+
+    // Use slug returned by backend (it appends timestamp to ensure uniqueness)
+    const savedSlug = result.data?.slug || projectForm.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     const addedTitle = projectForm.title
-    const projectSlug = addedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
     setProjectForm({
       title: '',
@@ -301,7 +328,7 @@ const Admin = () => {
     setProjectImage(null)
     loadData()
     showToast(`Project "${addedTitle}" has been successfully added to Stryper Gallery!`, {
-      actionUrl: `/project/${projectSlug}`,
+      actionUrl: `/project/${savedSlug}`,
       actionLabel: 'View Live'
     })
   }
@@ -310,9 +337,8 @@ const Admin = () => {
     e.preventDefault()
     const defaultImg = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2000'
     const addedTitle = blogForm.title
-    const blogSlug = addedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-    
-    await addBlog({
+
+    const result = await addBlog({
       title: blogForm.title,
       subtitle: blogForm.subtitle,
       category: blogForm.category,
@@ -320,6 +346,14 @@ const Admin = () => {
       content: blogForm.content,
       image: blogImage || defaultImg
     })
+
+    if (!result || !result.success) {
+      alert(result?.message || 'Failed to publish blog. Please try again.')
+      return
+    }
+
+    // Use slug returned by backend
+    const savedSlug = result.data?.slug || addedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
     setBlogForm({
       title: '',
@@ -331,20 +365,20 @@ const Admin = () => {
     setBlogImage(null)
     loadData()
     showToast(`Blog post "${addedTitle}" published!`, {
-      actionUrl: `/blogs?slug=${blogSlug}`,
+      actionUrl: `/blogs?slug=${savedSlug}`,
       actionLabel: 'View Live'
     })
   }
 
   // Delete handlers
   const deleteInquiry = async (id) => {
-    await deleteInquiryBackend(id)
+    await apiDeleteInquiry(id)
     loadData()
     showToast('Inquiry deleted')
   }
 
   const deleteCareer = async (id) => {
-    await deleteCareerBackend(id)
+    await apiDeleteCareer(id)
     loadData()
     showToast('Career application deleted')
   }
@@ -385,8 +419,7 @@ const Admin = () => {
   const handleSettingsSubmit = async (e) => {
     e.preventDefault()
     await updateSiteSettings(settingsForm)
-    loadData()
-    showToast('Site settings updated successfully!')
+    showToast('Site settings saved successfully!')
   }
 
   const handlePasswordChangeSubmit = async (e) => {
@@ -395,39 +428,24 @@ const Admin = () => {
       alert('Passwords do not match!')
       return
     }
-    if (newPasswordVal.length < 6) {
-      alert('Password must be at least 6 characters long!')
-      return
-    }
-
-    const backendResult = await changeAdminPasswordBackend(currentPasswordVal, newPasswordVal)
-    if (backendResult.success) {
-      updateAdminPassword(newPasswordVal)
+    const result = await changeAdminPasswordBackend(currentPasswordVal, newPasswordVal)
+    if (result.success) {
       setCurrentPasswordVal('')
       setNewPasswordVal('')
       setConfirmPasswordVal('')
-      showToast('Admin password updated successfully!')
-      return
-    }
-
-    if (currentPasswordVal === getAdminPassword()) {
-      updateAdminPassword(newPasswordVal)
-      setCurrentPasswordVal('')
-      setNewPasswordVal('')
-      setConfirmPasswordVal('')
-      showToast('Offline Mode: Admin password changed locally!')
+      showToast('Password updated successfully!')
     } else {
-      alert(backendResult.message || 'Incorrect current password!')
+      alert(result.message || 'Failed to update password')
     }
   }
 
-  const markNotificationRead = () => {
-    markNotificationsAsRead()
+  const markNotificationRead = async () => {
+    await markAllNotificationsRead()
     loadData()
   }
 
-  const resetNotifications = () => {
-    clearNotifications()
+  const resetNotifications = async () => {
+    await clearAllNotifications()
     loadData()
   }
 
@@ -500,10 +518,10 @@ const Admin = () => {
       <AnimatePresence>
         {toast && (
           <motion.div 
-            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-24 right-6 z-[100] bg-black text-brand-gold py-4 px-6 border-l-4 border-brand-gold shadow-2xl flex items-center gap-6 animate-fade-in"
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-6 right-6 z-[100] bg-black text-brand-gold py-4 px-6 border-l-4 border-brand-gold shadow-2xl flex items-center gap-6 max-w-md"
           >
             <Bell className="animate-swing shrink-0" size={18} />
             <div className="text-xs font-black uppercase tracking-wider text-left flex-1">
@@ -642,6 +660,7 @@ const Admin = () => {
             </button>
             <button 
               onClick={() => {
+                logoutAdmin()
                 setIsAuthenticated(false)
                 setIsMobileSidebarOpen(false)
                 sessionStorage.removeItem('stryper_admin_authenticated')
@@ -742,12 +761,12 @@ const Admin = () => {
                     <p className="text-black/40 text-xs italic text-center py-6">No recent activity logged.</p>
                   ) : (
                     notifications.map((notif) => (
-                      <div key={notif.id} className={`p-4 border text-xs flex justify-between items-center transition-colors ${notif.read ? 'bg-black/[0.01] border-black/5 text-black/60' : 'bg-brand-gold/5 border-brand-gold/20 text-black font-semibold'}`}>
+                      <div key={notif._id} className={`p-4 border text-xs flex justify-between items-center transition-colors ${notif.read ? 'bg-black/[0.01] border-black/5 text-black/60' : 'bg-brand-gold/5 border-brand-gold/20 text-black font-semibold'}`}>
                         <div className="flex items-center gap-3">
                           <div className={`w-2.5 h-2.5 rounded-full ${notif.read ? 'bg-black/10' : 'bg-brand-gold animate-pulse'}`} />
                           <p>{notif.text}</p>
                         </div>
-                        <span className="text-[9px] text-black/40 font-medium font-mono">{new Date(notif.date).toLocaleTimeString()}</span>
+                        <span className="text-[9px] text-black/40 font-medium font-mono">{new Date(notif.createdAt).toLocaleTimeString()}</span>
                       </div>
                     ))
                   )}
@@ -768,7 +787,7 @@ const Admin = () => {
                         {selectedInquiry.service}
                       </span>
                       <h3 className="text-black text-2xl font-black font-serif uppercase tracking-tight pt-2">{selectedInquiry.name}</h3>
-                      <span className="text-[9px] text-black/40 font-mono block">Submitted: {new Date(selectedInquiry.date).toLocaleString()}</span>
+                      <span className="text-[9px] text-black/40 font-mono block">Submitted: {new Date(selectedInquiry.createdAt).toLocaleString()}</span>
                     </div>
                     <button 
                       onClick={() => setSelectedInquiry(null)}
@@ -834,7 +853,7 @@ const Admin = () => {
                         {/* Mobile view cards */}
                         <div className="space-y-4 md:hidden">
                           {inquiries.map((inq) => (
-                            <div key={inq.id} className="bg-white p-5 border border-black/5 shadow-sm space-y-4">
+                            <div key={inq._id} className="bg-white p-5 border border-black/5 shadow-sm space-y-4">
                               <div className="flex justify-between items-start gap-4">
                                 <div className="space-y-1">
                                   <p className="font-bold text-black text-sm">{inq.name}</p>
@@ -846,14 +865,14 @@ const Admin = () => {
                               </div>
                               <div className="flex justify-between items-center text-[11px] border-t border-black/5 pt-3">
                                 <span className="font-bold text-black">{inq.phone}</span>
-                                <span className="text-black/40 font-mono">{new Date(inq.date).toLocaleDateString()}</span>
+                                <span className="text-black/40 font-mono">{new Date(inq.createdAt).toLocaleDateString()}</span>
                               </div>
                               <div className="flex gap-2 pt-2">
                                 <button 
                                   onClick={async () => {
                                     setSelectedInquiry(inq)
                                     if (inq.status === 'new') {
-                                      await updateInquiryStatusBackend(inq.id, 'read')
+                                      await updateInquiryStatus(inq._id, 'contacted')
                                       loadData()
                                     }
                                   }}
@@ -862,7 +881,7 @@ const Admin = () => {
                                   View Detail
                                 </button>
                                 <button 
-                                  onClick={() => deleteInquiry(inq.id)}
+                                  onClick={() => deleteInquiry(inq._id)}
                                   className="border border-red-200 text-red-500 hover:bg-red-50 py-2.5 px-4 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
                                 >
                                   Delete
@@ -872,7 +891,7 @@ const Admin = () => {
                           ))}
                         </div>
 
-                        {/* Desktop view table */}
+                            {/* Desktop view table */}
                         <div className="hidden md:block overflow-x-auto">
                           <table className="w-full text-left border-collapse">
                             <thead>
@@ -886,7 +905,7 @@ const Admin = () => {
                             </thead>
                             <tbody className="divide-y divide-black/5 text-xs">
                               {inquiries.map((inq) => (
-                                <tr key={inq.id} className="hover:bg-black/[0.01] transition-colors">
+                                <tr key={inq._id} className="hover:bg-black/[0.01] transition-colors">
                                   <td className="py-4 px-6">
                                     <p className="font-bold text-black">{inq.name}</p>
                                     <p className="text-[10px] text-black/50">{inq.email}</p>
@@ -897,13 +916,13 @@ const Admin = () => {
                                     </span>
                                   </td>
                                   <td className="py-4 px-6 font-bold">{inq.phone}</td>
-                                  <td className="py-4 px-6 text-black/50 font-mono">{new Date(inq.date).toLocaleDateString()}</td>
+                                  <td className="py-4 px-6 text-black/50 font-mono">{new Date(inq.createdAt).toLocaleDateString()}</td>
                                   <td className="py-4 px-6 text-right space-x-2">
                                     <button 
                                       onClick={async () => {
                                         setSelectedInquiry(inq)
                                         if (inq.status === 'new') {
-                                          await updateInquiryStatusBackend(inq.id, 'read')
+                                          await updateInquiryStatus(inq._id, 'contacted')
                                           loadData()
                                         }
                                       }}
@@ -912,7 +931,7 @@ const Admin = () => {
                                       View Detail
                                     </button>
                                     <button 
-                                      onClick={() => deleteInquiry(inq.id)}
+                                      onClick={() => deleteInquiry(inq._id)}
                                       className="border border-red-200 text-red-500 hover:bg-red-50 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
                                     >
                                       Delete
@@ -942,19 +961,19 @@ const Admin = () => {
                         {selectedCareer.position}
                       </span>
                       <h3 className="text-black text-2xl font-black font-serif uppercase tracking-tight pt-2">{selectedCareer.name}</h3>
-                      <span className="text-[9px] text-black/40 font-mono block mb-2">Submitted: {new Date(selectedCareer.date).toLocaleString()}</span>
+                      <span className="text-[9px] text-black/40 font-mono block mb-2">Submitted: {new Date(selectedCareer.createdAt).toLocaleString()}</span>
                       <div className="flex items-center gap-2 mt-2">
                         <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border ${
-                          selectedCareer.status === 'Shortlisted' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                          selectedCareer.status === 'Rejected' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
+                          selectedCareer.status === 'shortlisted' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                          selectedCareer.status === 'rejected' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
                           'bg-brand-gold/10 text-brand-gold border-brand-gold/20'
                         }`}>
-                          {selectedCareer.status || 'Pending'}
+                          {selectedCareer.status || 'new'}
                         </span>
                         <button
                           onClick={async () => {
-                            await updateCareerStatusBackend(selectedCareer.id, 'Shortlisted')
-                            selectedCareer.status = 'Shortlisted'
+                            await updateCareerStatus(selectedCareer._id, 'shortlisted')
+                            setSelectedCareer({ ...selectedCareer, status: 'shortlisted' })
                             loadData()
                             showToast('Application Shortlisted!')
                           }}
@@ -964,8 +983,8 @@ const Admin = () => {
                         </button>
                         <button
                           onClick={async () => {
-                            await updateCareerStatusBackend(selectedCareer.id, 'Rejected')
-                            selectedCareer.status = 'Rejected'
+                            await updateCareerStatus(selectedCareer._id, 'rejected')
+                            setSelectedCareer({ ...selectedCareer, status: 'rejected' })
                             loadData()
                             showToast('Application Rejected.')
                           }}
@@ -1031,12 +1050,24 @@ const Admin = () => {
                     <div className="flex items-center justify-between border border-black/10 bg-black/[0.01] p-4 text-xs font-bold">
                       <span className="flex items-center gap-2">
                         <FileText size={16} className="text-brand-gold" />
-                        <span className="truncate max-w-[250px]">{selectedCareer.resumeName}</span>
+                        {selectedCareer.resume_path ? (
+                          <a
+                            href={`/api/careers/${selectedCareer._id}/resume`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="truncate max-w-[250px] underline hover:text-brand-gold transition-colors cursor-pointer"
+                          >
+                            {selectedCareer.resume_name || 'Resume'}
+                          </a>
+                        ) : (
+                          <span className="truncate max-w-[250px] text-black/40">No resume uploaded</span>
+                        )}
                       </span>
-                      {selectedCareer.resumeData && (
-                        <a 
-                          href={selectedCareer.resumeData} 
-                          download={selectedCareer.resumeName}
+                      {selectedCareer.resume_path && (
+                        <a
+                          href={`/api/careers/${selectedCareer._id}/resume`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="bg-black text-brand-gold hover:bg-brand-gold hover:text-black py-1.5 px-4 uppercase tracking-widest text-[9px] transition-colors flex items-center gap-1.5 cursor-pointer"
                         >
                           <Download size={10} /> Download Resume
@@ -1072,7 +1103,7 @@ const Admin = () => {
                         {/* Mobile view cards */}
                         <div className="space-y-4 md:hidden">
                           {careers.map((car) => (
-                            <div key={car.id} className="bg-white p-5 border border-black/5 shadow-sm space-y-4">
+                            <div key={car._id} className="bg-white p-5 border border-black/5 shadow-sm space-y-4">
                               <div className="flex justify-between items-start gap-4">
                                 <div className="space-y-1">
                                   <p className="font-bold text-black text-sm">{car.name}</p>
@@ -1086,7 +1117,18 @@ const Admin = () => {
                                 <span className="font-bold text-brand-champagne">Exp: {car.experience}</span>
                                 <span className="flex items-center gap-1.5 text-black/70 truncate max-w-[150px]">
                                   <FileText size={12} className="text-brand-gold shrink-0" />
-                                  <span className="font-bold underline truncate">{car.resumeName}</span>
+                                  {car.resume_path ? (
+                                    <a
+                                      href={`/api/careers/${car._id}/resume`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="font-bold underline truncate hover:text-brand-gold transition-colors"
+                                    >
+                                      {car.resume_name || 'Resume'}
+                                    </a>
+                                  ) : (
+                                    <span className="text-black/30 italic">No file</span>
+                                  )}
                                 </span>
                               </div>
                               <div className="flex gap-2 pt-2">
@@ -1097,7 +1139,7 @@ const Admin = () => {
                                   View Candidate
                                 </button>
                                 <button 
-                                  onClick={() => deleteCareer(car.id)}
+                                  onClick={() => deleteCareer(car._id)}
                                   className="border border-red-200 text-red-500 hover:bg-red-50 py-2.5 px-4 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
                                 >
                                   Delete
@@ -1121,7 +1163,7 @@ const Admin = () => {
                             </thead>
                             <tbody className="divide-y divide-black/5 text-xs">
                               {careers.map((car) => (
-                                <tr key={car.id} className="hover:bg-black/[0.01] transition-colors">
+                                <tr key={car._id} className="hover:bg-black/[0.01] transition-colors">
                                   <td className="py-4 px-6">
                                     <p className="font-bold text-black">{car.name}</p>
                                     <p className="text-[10px] text-black/50">{car.email}</p>
@@ -1131,7 +1173,18 @@ const Admin = () => {
                                   <td className="py-4 px-6">
                                     <span className="flex items-center gap-1.5 text-black/70">
                                       <FileText size={12} className="text-brand-gold" />
-                                      <span className="font-bold underline truncate max-w-[150px]">{car.resumeName}</span>
+                                      {car.resume_path ? (
+                                        <a
+                                          href={`/api/careers/${car._id}/resume`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="font-bold underline truncate max-w-[150px] hover:text-brand-gold transition-colors"
+                                        >
+                                          {car.resume_name || 'Resume'}
+                                        </a>
+                                      ) : (
+                                        <span className="text-black/30 italic text-[10px]">No file</span>
+                                      )}
                                     </span>
                                   </td>
                                   <td className="py-4 px-6 text-right space-x-2">
@@ -1142,7 +1195,7 @@ const Admin = () => {
                                       View Candidate
                                     </button>
                                     <button 
-                                      onClick={() => deleteCareer(car.id)}
+                                      onClick={() => deleteCareer(car._id)}
                                       className="border border-red-200 text-red-500 hover:bg-red-50 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
                                     >
                                       Delete
@@ -1386,10 +1439,10 @@ const Admin = () => {
                     <span className="text-[10px] font-black text-brand-gold uppercase tracking-wider block border-b border-black/5 pb-3">Active Reviews ({testimonials.length})</span>
                     <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 mt-4">
                       {testimonials.map((t) => (
-                        <div key={t.name} className="p-4 border border-black/5 bg-[#F8F9FA] space-y-3 relative text-left">
+                        <div key={t._id || t.name} className="p-4 border border-black/5 bg-[#F8F9FA] space-y-3 relative text-left">
                           <button 
                             type="button" 
-                            onClick={() => handleDeleteTestimonial(t.name)}
+                            onClick={() => handleDeleteTestimonial(t._id || t.name)}
                             className="absolute top-3 right-3 text-red-500 hover:text-red-700 p-1 cursor-pointer transition-colors"
                             title="Delete Review"
                           >
@@ -1701,9 +1754,18 @@ const Admin = () => {
                             accept="image/*"
                             className="hidden"
                           />
-                          <Upload className="text-brand-gold w-6 h-6 mb-2" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-black">Upload Local Image</span>
-                          <span className="text-[9px] text-black/40 mt-1 uppercase">Drag & Drop or click to browse</span>
+                          {isUploadingImage ? (
+                            <>
+                              <div className="w-6 h-6 border-2 border-brand-gold border-t-transparent rounded-full animate-spin mb-2" />
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-brand-gold">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="text-brand-gold w-6 h-6 mb-2" />
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-black">Upload Local Image</span>
+                              <span className="text-[9px] text-black/40 mt-1 uppercase">Drag & Drop or click to browse</span>
+                            </>
+                          )}
                         </div>
 
                         {/* URL Zone */}
@@ -1891,9 +1953,18 @@ const Admin = () => {
                             accept="image/*"
                             className="hidden"
                           />
-                          <Upload className="text-brand-gold w-6 h-6 mb-2" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-black">Upload Local Image</span>
-                          <span className="text-[9px] text-black/40 mt-1 uppercase">Drag & Drop or click to browse</span>
+                          {isUploadingImage ? (
+                            <>
+                              <div className="w-6 h-6 border-2 border-brand-gold border-t-transparent rounded-full animate-spin mb-2" />
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-brand-gold">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="text-brand-gold w-6 h-6 mb-2" />
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-black">Upload Local Image</span>
+                              <span className="text-[9px] text-black/40 mt-1 uppercase">Drag & Drop or click to browse</span>
+                            </>
+                          )}
                         </div>
 
                         {/* URL Zone */}

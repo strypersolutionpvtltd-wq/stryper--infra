@@ -1,26 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Phone, Mail, MapPin, Send, CheckCircle2 } from 'lucide-react'
-import { addInquiry, getSiteSettings, getSiteSettingsSync } from '../data/store'
+import { submitInquiry } from '../services/api'
 
 const Contact = () => {
-  const [settings, setSettings] = useState(getSiteSettingsSync())
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      const data = await getSiteSettings()
-      if (data) {
-        setSettings(data)
-      }
-    }
-    loadSettings()
-
-    const handleSettingsUpdate = () => {
-      loadSettings()
-    }
-    window.addEventListener('stryper_settings_updated', handleSettingsUpdate)
-    return () => window.removeEventListener('stryper_settings_updated', handleSettingsUpdate)
-  }, [])
+  const settings = {
+    phone: '+91 9565310410',
+    email: 'gc@stryperinteriorandinfra.com',
+    address: 'Pan India Projects',
+    whatsapp: '918448590303'
+  }
 
   const [formData, setFormData] = useState({
     name: '',
@@ -39,9 +28,9 @@ const Contact = () => {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    addInquiry({
+    await submitInquiry({
       name: formData.name,
       email: formData.email,
       phone: formData.phone,

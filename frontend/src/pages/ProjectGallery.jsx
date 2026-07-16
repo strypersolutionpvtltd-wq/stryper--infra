@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, ArrowRight, Layers, SlidersHorizontal } from 'lucide-react'
-import { getProjects } from '../data/store'
+import { getProjects } from '../services/api'
 
 const ProjectGallery = () => {
   const [projects, setProjects] = useState([])

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getSiteSettings, getSiteSettingsSync } from '../data/store'
+import { getSiteSettingsSync, getSiteSettings } from '../data/store'
 import logo from '../assets/logo.png'
 import { Phone, Mail, MapPin } from 'lucide-react'
 import chairmanImg from '../assets/screenshot-footer.png'

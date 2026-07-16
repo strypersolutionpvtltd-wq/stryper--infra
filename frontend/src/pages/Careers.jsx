@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Send, Upload, FileText, CheckCircle2, Link as LinkIcon, User, Mail, Phone, Briefcase } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { addCareer } from '../data/store'
+import { submitCareer } from '../services/api'
 
 const Careers = () => {
   const [formData, setFormData] = useState({
@@ -14,7 +14,7 @@ const Careers = () => {
     portfolio: '',
     message: ''
   })
-  const [resume, setResume] = useState(null) // Stores { name, size, data }
+  const [resume, setResume] = useState(null)       // Stores { name, size, file }
   const [isDragActive, setIsDragActive] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [fileError, setFileError] = useState('')
@@ -28,7 +28,7 @@ const Careers = () => {
     }))
   }
 
-  // Handle file reading
+  // Handle file selection
   const processFile = (file) => {
     if (!file) return
 
@@ -39,22 +39,19 @@ const Careers = () => {
       return
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
       setFileError('File too large. Max size is 5MB.')
       setResume(null)
       return
     }
 
     setFileError('')
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      setResume({
-        name: file.name,
-        size: (file.size / 1024).toFixed(1) + ' KB',
-        data: event.target.result // Base64 string
-      })
-    }
-    reader.readAsDataURL(file)
+    // Store actual File object (not base64) for FormData upload
+    setResume({
+      name: file.name,
+      size: (file.size / 1024).toFixed(1) + ' KB',
+      file: file
+    })
   }
 
   const handleFileChange = (e) => {
@@ -88,24 +85,24 @@ const Careers = () => {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!resume) {
       setFileError('Please upload your resume to submit your application.')
       return
     }
 
-    addCareer({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      position: formData.position,
-      experience: formData.experience + ' Years',
-      portfolio: formData.portfolio || 'Not Provided',
-      resumeName: resume.name,
-      resumeData: resume.data,
-      message: formData.message || 'Applicant submitted resume via Careers portal.'
-    })
+    const fd = new FormData()
+    fd.append('name', formData.name)
+    fd.append('email', formData.email)
+    fd.append('phone', formData.phone)
+    fd.append('position', formData.position)
+    fd.append('experience', formData.experience + ' Years')
+    fd.append('portfolio', formData.portfolio || '')
+    fd.append('message', formData.message || 'Applicant submitted resume via Careers portal.')
+    fd.append('resume', resume.file)
+
+    await submitCareer(fd)
 
     setIsSubmitted(true)
     setFormData({

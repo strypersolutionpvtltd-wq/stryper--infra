@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, MapPin, CheckCircle2 } from 'lucide-react'
-import { getProjects } from '../data/store'
 
 const ProjectDetail = () => {
   const { slug } = useParams()
@@ -12,9 +11,16 @@ const ProjectDetail = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true)
-      const list = await getProjects()
-      const found = list.find(p => p.slug === slug)
-      setProject(found)
+      try {
+        const res = await fetch(`/api/projects/${slug}`)
+        if (!res.ok) throw new Error('Not found')
+        const data = await res.json()
+        if (data.success && data.data) {
+          setProject(data.data)
+        }
+      } catch {
+        setProject(null)
+      }
       setLoading(false)
     }
     load()

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 import logo from '../assets/logo.png'
-import { getNotifications, getSiteSettings, getSiteSettingsSync } from '../data/store'
+import { getSiteSettingsSync, getSiteSettings, getNotifications } from '../data/store'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)

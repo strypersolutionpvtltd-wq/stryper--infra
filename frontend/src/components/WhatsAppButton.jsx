@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { getSiteSettings, getSiteSettingsSync } from '../data/store'
+import { getSiteSettingsSync, getSiteSettings } from '../data/store'
 
 const WhatsAppButton = () => {
   const [settings, setSettings] = useState(getSiteSettingsSync())

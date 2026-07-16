@@ -268,11 +268,9 @@ if (typeof window !== 'undefined') {
 
 export const getProjects = async () => {
   try {
-    const res = await fetch('http://localhost:3001/api/v1/projects');
+    const res = await fetch('/api/projects');
     const data = await res.json();
-    if (data.success && data.projects) {
-      return data.projects;
-    }
+    if (data.success && data.data) return data.data;
   } catch (e) {
     console.error("Failed to fetch projects from backend:", e.message);
   }
@@ -295,7 +293,7 @@ export const addProject = async (project) => {
 
   try {
     const token = localStorage.getItem('stryper_token');
-    const res = await fetch('http://localhost:3001/api/v1/projects', {
+    const res = await fetch('/api/projects', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -304,7 +302,7 @@ export const addProject = async (project) => {
       body: JSON.stringify(newProject)
     });
     const data = await res.json();
-    if (data.success) return data.project;
+    if (data.success) return data.data;
   } catch (e) {
     console.error("Failed to save project to backend:", e.message);
   }
@@ -323,14 +321,14 @@ export const deleteProject = async (slugOrId) => {
     const token = localStorage.getItem('stryper_token');
     let id = slugOrId;
     if (slugOrId.length !== 24) {
-      const res = await fetch('http://localhost:3001/api/v1/projects');
+      const res = await fetch('/api/projects');
       const data = await res.json();
       if (data.success) {
-        const found = data.projects.find(p => p.slug === slugOrId);
+        const found = data.data.find(p => p.slug === slugOrId);
         if (found) id = found._id;
       }
     }
-    await fetch(`http://localhost:3001/api/v1/projects/${id}`, {
+    await fetch(`/api/projects/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -341,11 +339,9 @@ export const deleteProject = async (slugOrId) => {
 
 export const getTestimonials = async () => {
   try {
-    const res = await fetch('http://localhost:3001/api/v1/testimonials');
+    const res = await fetch('/api/testimonials');
     const data = await res.json();
-    if (data.success && data.testimonials) {
-      return data.testimonials;
-    }
+    if (data.success && data.data) return data.data;
   } catch (e) {
     console.error("Failed to fetch testimonials from backend:", e.message);
   }
@@ -362,13 +358,13 @@ export const addTestimonial = async (testimonial) => {
   }
 
   try {
-    const res = await fetch('http://localhost:3001/api/v1/testimonials', {
+    const res = await fetch('/api/testimonials', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(testimonial)
     });
     const data = await res.json();
-    if (data.success) return data.testimonial;
+    if (data.success) return data.data;
   } catch (e) {
     console.error("Failed to save testimonial to backend:", e.message);
   }
@@ -387,14 +383,14 @@ export const deleteTestimonial = async (idOrName) => {
     const token = localStorage.getItem('stryper_token');
     let id = idOrName;
     if (idOrName.length !== 24) {
-      const res = await fetch('http://localhost:3001/api/v1/testimonials');
+      const res = await fetch('/api/testimonials');
       const data = await res.json();
       if (data.success) {
-        const found = data.testimonials.find(t => t.name === idOrName);
+        const found = data.data.find(t => t.name === idOrName);
         if (found) id = found._id;
       }
     }
-    await fetch(`http://localhost:3001/api/v1/testimonials/${id}`, {
+    await fetch(`/api/testimonials/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -405,11 +401,9 @@ export const deleteTestimonial = async (idOrName) => {
 
 export const getBlogs = async () => {
   try {
-    const res = await fetch('http://localhost:3001/api/v1/blogs');
+    const res = await fetch('/api/blogs');
     const data = await res.json();
-    if (data.success && data.blogs) {
-      return data.blogs;
-    }
+    if (data.success && data.data) return data.data;
   } catch (e) {
     console.error("Failed to fetch blogs from backend:", e.message);
   }
@@ -433,7 +427,7 @@ export const addBlog = async (blog) => {
 
   try {
     const token = localStorage.getItem('stryper_token');
-    const res = await fetch('http://localhost:3001/api/v1/blogs', {
+    const res = await fetch('/api/blogs', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -442,7 +436,7 @@ export const addBlog = async (blog) => {
       body: JSON.stringify(newBlog)
     });
     const data = await res.json();
-    if (data.success) return data.blog;
+    if (data.success) return data.data;
   } catch (e) {
     console.error("Failed to save blog to backend:", e.message);
   }
@@ -461,14 +455,14 @@ export const deleteBlog = async (slugOrId) => {
     const token = localStorage.getItem('stryper_token');
     let id = slugOrId;
     if (slugOrId.length !== 24) {
-      const res = await fetch('http://localhost:3001/api/v1/blogs');
+      const res = await fetch('/api/blogs');
       const data = await res.json();
       if (data.success) {
-        const found = data.blogs.find(b => b.slug === slugOrId);
+        const found = data.data.find(b => b.slug === slugOrId);
         if (found) id = found._id;
       }
     }
-    await fetch(`http://localhost:3001/api/v1/blogs/${id}`, {
+    await fetch(`/api/blogs/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -481,15 +475,12 @@ export const getInquiries = async () => {
   const token = localStorage.getItem('stryper_token');
   if (token) {
     try {
-      const res = await fetch('http://localhost:3001/api/v1/admin/inquiries', {
+      const res = await fetch('/api/inquiries', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success && data.inquiries) {
-        return data.inquiries.map(inq => ({
-          id: inq._id,
-          ...inq
-        }));
+      if (data.success && data.data) {
+        return data.data.map(inq => ({ id: inq._id, ...inq }));
       }
     } catch (e) {
       console.error("Failed to fetch inquiries from backend:", e.message);
@@ -513,7 +504,7 @@ export const addInquiry = async (inquiry) => {
   addNotification(`New project Brief submitted by ${newInq.name}`);
 
   try {
-    await fetch('http://localhost:3001/api/v1/contact', {
+    await fetch('/api/inquiries', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -539,7 +530,7 @@ export const deleteInquiryBackend = async (id) => {
   const token = localStorage.getItem('stryper_token');
   if (token && id && id.length === 24) {
     try {
-      await fetch(`http://localhost:3001/api/v1/admin/inquiries/${id}`, {
+      await fetch(`/api/inquiries/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -559,7 +550,7 @@ export const updateInquiryStatusBackend = async (id, status) => {
   const token = localStorage.getItem('stryper_token');
   if (token && id && id.length === 24) {
     try {
-      await fetch(`http://localhost:3001/api/v1/admin/inquiries/${id}/status`, {
+      await fetch(`/api/inquiries/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -574,9 +565,32 @@ export const updateInquiryStatusBackend = async (id, status) => {
 };
 
 export const getCareers = async () => {
-  const backend = await fetchCareersFromBackend();
-  if (backend && backend.length > 0) {
-    return backend;
+  const token = localStorage.getItem('stryper_token');
+  if (token) {
+    try {
+      const res = await fetch('/api/careers', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        return data.data.map(app => ({
+          id: app._id,
+          name: app.name,
+          email: app.email,
+          phone: app.phone,
+          position: app.position,
+          experience: app.experience || 'N/A',
+          portfolio: app.portfolio || 'Not Provided',
+          resumeName: app.resume_name || 'Resume',
+          resumeData: app.resume_path ? `/uploads/resumes/${app.resume_path.split('/').pop()}` : null,
+          message: app.message || '',
+          date: app.createdAt,
+          status: app.status
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to fetch careers from backend:", e.message);
+    }
   }
   if (typeof window === 'undefined') return [];
   const stored = localStorage.getItem('stryper_careers');
@@ -598,31 +612,21 @@ export const addCareer = async (career) => {
   addNotification(`New job application from ${newCar.name}`);
 
   try {
-    const jobsRes = await fetch('http://localhost:3001/api/v1/jobs/stryper');
-    const jobsData = await jobsRes.json();
-    let jobId = null;
-    if (jobsData.success && jobsData.jobs.length > 0) {
-      const matched = jobsData.jobs.find(j => 
-        j.title.toLowerCase().includes(career.position.toLowerCase()) || 
-        career.position.toLowerCase().includes(j.title.toLowerCase())
-      );
-      jobId = matched ? matched._id : jobsData.jobs[0]._id;
+    const formData = new FormData();
+    formData.append('name', career.name);
+    formData.append('email', career.email);
+    formData.append('phone', career.phone);
+    formData.append('position', career.position || '');
+    formData.append('experience', career.experience || '');
+    formData.append('portfolio', career.portfolio || '');
+    formData.append('message', career.message || '');
+    if (career.resumeFile) {
+      formData.append('resume', career.resumeFile);
     }
-
-    if (jobId) {
-      await fetch('http://localhost:3001/api/v1/jobs/stryper/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jobId,
-          name: career.name,
-          email: career.email,
-          phone: career.phone,
-          resumeUrl: career.resumeData,
-          coverLetter: career.message
-        })
-      });
-    }
+    await fetch('/api/careers', {
+      method: 'POST',
+      body: formData
+    });
   } catch (err) {
     console.error('Failed to submit application to backend:', err.message);
   }
@@ -638,7 +642,7 @@ export const deleteCareerBackend = async (id) => {
   const token = localStorage.getItem('stryper_token');
   if (token && id && id.length === 24) {
     try {
-      await fetch(`http://localhost:3001/api/v1/admin/applications/${id}`, {
+      await fetch(`/api/careers/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -658,7 +662,7 @@ export const updateCareerStatusBackend = async (id, status) => {
   const token = localStorage.getItem('stryper_token');
   if (token && id && id.length === 24) {
     try {
-      await fetch(`http://localhost:3001/api/v1/admin/applications/${id}/status`, {
+      await fetch(`/api/careers/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -672,49 +676,17 @@ export const updateCareerStatusBackend = async (id, status) => {
   }
 };
 
-// Gallery API integration
 export const getGallery = async () => {
-  try {
-    const res = await fetch('http://localhost:3001/api/v1/gallery');
-    const data = await res.json();
-    if (data.success && data.gallery) {
-      return data.gallery;
-    }
-  } catch (e) {
-    console.error("Failed to fetch gallery from backend:", e.message);
-  }
+  // Gallery route not implemented in backend yet
   return [];
 };
 
 export const addGallery = async (item) => {
-  try {
-    const token = localStorage.getItem('stryper_token');
-    const res = await fetch('http://localhost:3001/api/v1/gallery', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(item)
-    });
-    const data = await res.json();
-    if (data.success) return data.galleryItem;
-  } catch (e) {
-    console.error("Failed to save gallery item to backend:", e.message);
-  }
   return item;
 };
 
 export const deleteGallery = async (id) => {
-  try {
-    const token = localStorage.getItem('stryper_token');
-    await fetch(`http://localhost:3001/api/v1/gallery/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-  } catch (e) {
-    console.error("Failed to delete gallery item from backend:", e.message);
-  }
+  // Gallery route not implemented in backend yet
 };
 
 export const getNotifications = () => {
@@ -751,23 +723,28 @@ export const clearNotifications = () => {
 
 export const incrementVisitorCount = async () => {
   if (typeof window === 'undefined') return;
-  const pageViews = parseInt(localStorage.getItem('stryper_pageviews') || '293', 10);
+
+  const pageViews = parseInt(localStorage.getItem('stryper_pageviews') || '0', 10);
   localStorage.setItem('stryper_pageviews', (pageViews + 1).toString());
 
-  if (!sessionStorage.getItem('stryper_visited_session')) {
-    sessionStorage.setItem('stryper_visited_session', 'true');
-    const uniqueVisitors = parseInt(localStorage.getItem('stryper_visitors') || '116', 10);
+  // Generate or reuse a sessionId to track unique visitors
+  let sessionId = sessionStorage.getItem('stryper_session_id');
+  if (!sessionId) {
+    sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    sessionStorage.setItem('stryper_session_id', sessionId);
+    // Count as unique visitor only once per session
+    const uniqueVisitors = parseInt(localStorage.getItem('stryper_visitors') || '0', 10);
     localStorage.setItem('stryper_visitors', (uniqueVisitors + 1).toString());
   }
 
   try {
-    await fetch('http://localhost:3001/api/v1/analytics/visit', {
+    await fetch('/api/stats/increment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: window.location.pathname })
+      body: JSON.stringify({ url: window.location.pathname, sessionId })
     });
-  } catch (err) {
-    console.error('Failed to log visitor analytics to backend:', err.message);
+  } catch {
+    // silent — analytics failure should never break the UI
   }
 };
 
@@ -807,18 +784,16 @@ export const getSiteSettingsSync = () => {
 export const getSiteSettings = async () => {
   const token = localStorage.getItem('stryper_token');
   try {
-    const url = token 
-      ? 'http://localhost:3001/api/v1/admin/settings' 
-      : 'http://localhost:3001/api/v1/admin/settings/public';
+    const url = token ? '/api/settings' : '/api/settings/public';
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    
     const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (data.success && data.settings) {
-      return data.settings;
+    if (data.success && data.data) {
+      return data.data;
     }
   } catch (e) {
-    console.error("Failed to fetch settings from backend:", e.message);
+    // silently fallback to localStorage — don't log on 502
   }
   return getSiteSettingsSync();
 };
@@ -833,7 +808,7 @@ export const updateSiteSettings = async (newSettings) => {
   const token = localStorage.getItem('stryper_token');
   if (token) {
     try {
-      await fetch('http://localhost:3001/api/v1/admin/settings', {
+      await fetch('/api/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -850,18 +825,15 @@ export const updateSiteSettings = async (newSettings) => {
 // API Integration Helpers for Admin page
 export const loginAdminBackend = async (password) => {
   try {
-    const res = await fetch('http://localhost:3001/api/v1/auth/login', {
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'admin@stryper.com',
-        password: password
-      })
+      body: JSON.stringify({ password })
     });
     const data = await res.json();
-    if (data.success && data.token) {
-      localStorage.setItem('stryper_token', data.token);
-      return { success: true, user: data.user };
+    if (data.success && data.data?.token) {
+      localStorage.setItem('stryper_token', data.data.token);
+      return { success: true };
     }
     return { success: false, message: data.message || 'Login failed' };
   } catch (err) {
@@ -874,16 +846,13 @@ export const changeAdminPasswordBackend = async (currentPassword, newPassword) =
   const token = localStorage.getItem('stryper_token');
   if (!token) return { success: false, message: 'Not authenticated' };
   try {
-    const res = await fetch('http://localhost:3001/api/v1/auth/change-password', {
+    const res = await fetch('/api/auth/change-password', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        currentPassword,
-        newPassword
-      })
+      body: JSON.stringify({ currentPassword, newPassword })
     });
     const data = await res.json();
     return { success: data.success, message: data.message };
@@ -897,15 +866,11 @@ export const fetchStatsFromBackend = async () => {
   const token = localStorage.getItem('stryper_token');
   if (!token) return null;
   try {
-    const res = await fetch('http://localhost:3001/api/v1/admin/stats', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    const res = await fetch('/api/stats', {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
-    if (data.success) {
-      return data.stats;
-    }
+    if (data.success) return data.data;
     return null;
   } catch (err) {
     console.error('Error fetching admin stats:', err);
@@ -914,44 +879,8 @@ export const fetchStatsFromBackend = async () => {
 };
 
 export const fetchCareersFromBackend = async () => {
-  const token = localStorage.getItem('stryper_token');
-  if (!token) return [];
-  try {
-    const res = await fetch('http://localhost:3001/api/v1/admin/applications', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    const data = await res.json();
-    if (data.success) {
-      return data.applications.map(app => {
-        let guestInfo = { guestName: 'Applicant', guestEmail: '', guestPhone: '' };
-        try {
-          if (app.notes) {
-            guestInfo = JSON.parse(app.notes);
-          }
-        } catch(e) {}
-        return {
-          id: app._id,
-          name: guestInfo.guestName || (app.candidateId ? `${app.candidateId.firstName} ${app.candidateId.lastName}` : 'Applicant'),
-          email: guestInfo.guestEmail || (app.candidateId ? app.candidateId.email : ''),
-          phone: guestInfo.guestPhone || (app.candidateId ? app.candidateId.phone : ''),
-          position: app.jobId ? app.jobId.title : 'Internal Staff',
-          experience: app.candidateId && app.candidateId.experience ? app.candidateId.experience : 'N/A',
-          portfolio: 'Not Provided',
-          resumeName: 'Download Resume',
-          resumeData: app.resume,
-          message: app.coverLetter || 'No cover letter provided.',
-          date: app.createdAt,
-          status: app.status
-        };
-      });
-    }
-    return [];
-  } catch (err) {
-    console.error('Error fetching applications from backend:', err);
-    return [];
-  }
+  // Now handled directly in getCareers()
+  return [];
 };
 
 export const uploadImageToBackend = async (file) => {
@@ -960,17 +889,13 @@ export const uploadImageToBackend = async (file) => {
   try {
     const formData = new FormData();
     formData.append('image', file);
-    const res = await fetch('http://localhost:3001/api/v1/upload/image', {
+    const res = await fetch('/api/upload/image', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Authorization': `Bearer ${token}` },
       body: formData
     });
     const data = await res.json();
-    if (data.success) {
-      return data.imageUrl;
-    }
+    if (data.success) return data.data?.url || data.data?.imageUrl || null;
   } catch (err) {
     console.error('Failed to upload image:', err);
   }

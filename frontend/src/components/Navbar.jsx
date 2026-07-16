@@ -18,10 +18,10 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [expandedMenu, setExpandedMenu] = useState(null)
   const settings = SITE_SETTINGS
+  const unreadCount = 0  // notifications handled in admin panel only
   
   const navigate = useNavigate()
   const location = useLocation()
-
 
   useEffect(() => {
     const handleScroll = () => {

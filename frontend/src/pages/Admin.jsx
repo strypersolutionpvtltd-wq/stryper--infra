@@ -8,8 +8,8 @@ import {
 import { Link } from 'react-router-dom'
 import {
   loginAdmin, logoutAdmin,
-  getProjects, addProject, deleteProject,
-  getBlogs, addBlog, deleteBlog,
+  getProjects, addProject, deleteProject, updateProject,
+  getBlogs, addBlog, deleteBlog, updateBlog,
   getTestimonials, addTestimonial, deleteTestimonial,
   getInquiries, submitInquiry, deleteInquiry as apiDeleteInquiry, updateInquiryStatus,
   getCareers, deleteCareer as apiDeleteCareer, updateCareerStatus,
@@ -79,6 +79,8 @@ const Admin = () => {
   const [projectImage, setProjectImage] = useState(null)
   const [projDragActive, setProjDragActive] = useState(false)
   const projFileInputRef = useRef(null)
+  const [editingProject, setEditingProject] = useState(null)
+  const [editingBlog, setEditingBlog] = useState(null)
 
   // Blog Form State
   const [blogForm, setBlogForm] = useState({
@@ -297,7 +299,7 @@ const Admin = () => {
       .map(item => item.trim())
       .filter(item => item.length > 0)
 
-    const result = await addProject({
+    const payload = {
       title: projectForm.title,
       category: projectForm.category,
       location: projectForm.location,
@@ -307,14 +309,20 @@ const Admin = () => {
       description: projectForm.description,
       features: featureList.length > 0 ? featureList : ['Premium Site Planning', 'High-end Materials'],
       image: projectImage
-    })
+    }
+
+    let result
+    if (editingProject) {
+      result = await updateProject(editingProject.slug, payload)
+    } else {
+      result = await addProject(payload)
+    }
 
     if (!result || !result.success) {
-      alert(result?.message || 'Failed to publish project. Please try again.')
+      alert(result?.message || 'Failed to save project. Please try again.')
       return
     }
 
-    // Use slug returned by backend (it appends timestamp to ensure uniqueness)
     const savedSlug = result.data?.slug || projectForm.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     const addedTitle = projectForm.title
 
@@ -329,8 +337,10 @@ const Admin = () => {
       features: ''
     })
     setProjectImage(null)
+    setEditingProject(null)
     loadData()
-    showToast(`Project "${addedTitle}" has been successfully added to Stryper Gallery!`, {
+    setActiveTab('manage-projects')
+    showToast(editingProject ? `Project "${addedTitle}" updated!` : `Project "${addedTitle}" has been successfully added to Stryper Gallery!`, {
       actionUrl: `/project/${savedSlug}`,
       actionLabel: 'View Live'
     })
@@ -341,21 +351,27 @@ const Admin = () => {
     const defaultImg = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2000'
     const addedTitle = blogForm.title
 
-    const result = await addBlog({
+    const payload = {
       title: blogForm.title,
       subtitle: blogForm.subtitle,
       category: blogForm.category,
       author: blogForm.author,
       content: blogForm.content,
       image: blogImage || defaultImg
-    })
+    }
+
+    let result
+    if (editingBlog) {
+      result = await updateBlog(editingBlog.slug, payload)
+    } else {
+      result = await addBlog(payload)
+    }
 
     if (!result || !result.success) {
-      alert(result?.message || 'Failed to publish blog. Please try again.')
+      alert(result?.message || 'Failed to save blog. Please try again.')
       return
     }
 
-    // Use slug returned by backend
     const savedSlug = result.data?.slug || addedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
     setBlogForm({
@@ -366,8 +382,10 @@ const Admin = () => {
       content: ''
     })
     setBlogImage(null)
+    setEditingBlog(null)
     loadData()
-    showToast(`Blog post "${addedTitle}" published!`, {
+    setActiveTab('manage-blogs')
+    showToast(editingBlog ? `Blog post "${addedTitle}" updated!` : `Blog post "${addedTitle}" published!`, {
       actionUrl: `/blogs?slug=${savedSlug}`,
       actionLabel: 'View Live'
     })
@@ -624,6 +642,7 @@ const Admin = () => {
             </button>
             <button 
               onClick={() => {
+                setEditingProject(null)
                 setActiveTab('manage-projects')
                 setIsMobileSidebarOpen(false)
               }}
@@ -634,6 +653,7 @@ const Admin = () => {
             </button>
             <button 
               onClick={() => {
+                setEditingBlog(null)
                 setActiveTab('manage-blogs')
                 setIsMobileSidebarOpen(false)
               }}
@@ -1329,7 +1349,21 @@ const Admin = () => {
                   <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">View and delete portfolio projects</p>
                 </div>
                 <button 
-                  onClick={() => setActiveTab('add-project')}
+                  onClick={() => {
+                    setEditingProject(null)
+                    setProjectForm({
+                      title: '',
+                      category: 'Residential',
+                      location: '',
+                      client: '',
+                      area: '',
+                      duration: '',
+                      description: '',
+                      features: ''
+                    })
+                    setProjectImage(null)
+                    setActiveTab('add-project')
+                  }}
                   className="bg-black text-brand-gold hover:bg-brand-gold hover:text-black py-2.5 px-6 font-black uppercase tracking-widest text-[10px] transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <Plus size={14} /> Add New Project
@@ -1368,7 +1402,35 @@ const Admin = () => {
                               </span>
                             </td>
                             <td className="py-4 px-6">{proj.location}</td>
-                            <td className="py-4 px-6 text-right">
+                            <td className="py-4 px-6 text-right whitespace-nowrap">
+                              <a 
+                                href={`/project/${proj.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="border border-black/10 text-black/70 hover:bg-black/5 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors inline-block mr-2 text-center"
+                              >
+                                View
+                              </a>
+                              <button 
+                                onClick={() => {
+                                  setEditingProject(proj)
+                                  setProjectForm({
+                                    title: proj.title || '',
+                                    category: proj.category || 'Residential',
+                                    location: proj.location || '',
+                                    client: proj.client || '',
+                                    area: proj.area || '',
+                                    duration: proj.duration || '',
+                                    description: proj.description || '',
+                                    features: proj.features ? proj.features.join(', ') : ''
+                                  })
+                                  setProjectImage(proj.image)
+                                  setActiveTab('add-project')
+                                }}
+                                className="border border-brand-gold/30 text-brand-gold hover:bg-brand-gold/5 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer mr-2"
+                              >
+                                Edit
+                              </button>
                               <button 
                                 onClick={() => handleDeleteProject(proj.slug)}
                                 className="border border-red-200 text-red-500 hover:bg-red-50 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
@@ -1395,7 +1457,18 @@ const Admin = () => {
                   <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">View and delete blog posts</p>
                 </div>
                 <button 
-                  onClick={() => setActiveTab('add-blog')}
+                  onClick={() => {
+                    setEditingBlog(null)
+                    setBlogForm({
+                      title: '',
+                      subtitle: '',
+                      category: 'Residential',
+                      author: 'Stryper Editorial',
+                      content: ''
+                    })
+                    setBlogImage(null)
+                    setActiveTab('add-blog')
+                  }}
                   className="bg-black text-brand-gold hover:bg-brand-gold hover:text-black py-2.5 px-6 font-black uppercase tracking-widest text-[10px] transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <Plus size={14} /> Add New Blog Post
@@ -1434,7 +1507,32 @@ const Admin = () => {
                               </span>
                             </td>
                             <td className="py-4 px-6 font-mono text-black/50">{b.date}</td>
-                            <td className="py-4 px-6 text-right">
+                            <td className="py-4 px-6 text-right whitespace-nowrap">
+                              <a 
+                                href={`/blogs?slug=${b.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="border border-black/10 text-black/70 hover:bg-black/5 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors inline-block mr-2 text-center"
+                              >
+                                View
+                              </a>
+                              <button 
+                                onClick={() => {
+                                  setEditingBlog(b)
+                                  setBlogForm({
+                                    title: b.title || '',
+                                    subtitle: b.subtitle || '',
+                                    category: b.category || 'Residential',
+                                    author: b.author || 'Stryper Editorial',
+                                    content: b.content || ''
+                                  })
+                                  setBlogImage(b.image)
+                                  setActiveTab('add-blog')
+                                }}
+                                className="border border-brand-gold/30 text-brand-gold hover:bg-brand-gold/5 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer mr-2"
+                              >
+                                Edit
+                              </button>
                               <button 
                                 onClick={() => handleDeleteBlog(b.slug)}
                                 className="border border-red-200 text-red-500 hover:bg-red-50 py-1.5 px-3 font-bold uppercase tracking-widest text-[9px] transition-colors cursor-pointer"
@@ -1716,9 +1814,11 @@ const Admin = () => {
             <div className="space-y-8 max-w-6xl">
               <div>
                 <h1 className="text-black font-black text-3xl md:text-4xl uppercase tracking-wider font-serif flex items-center gap-3">
-                  <FolderKanban className="text-brand-gold w-8 h-8 shrink-0" /> Add Project
+                  <FolderKanban className="text-brand-gold w-8 h-8 shrink-0" /> {editingProject ? 'Edit Project' : 'Add Project'}
                 </h1>
-                <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">Publish completed projects directly to Stryper gallery</p>
+                <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">
+                  {editingProject ? 'Update existing project details in Stryper gallery' : 'Publish completed projects directly to Stryper gallery'}
+                </p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -1903,7 +2003,7 @@ const Admin = () => {
                   type="submit" 
                   className="w-full bg-black text-brand-gold hover:bg-brand-gold hover:text-black font-black uppercase tracking-[0.2em] text-xs py-4 transition-colors flex items-center justify-center gap-2 cursor-pointer border border-transparent hover:border-black"
                 >
-                  <Plus size={16} /> Publish Project
+                  <Plus size={16} /> {editingProject ? 'Update Project' : 'Publish Project'}
                 </button>
               </form>
 
@@ -1952,9 +2052,11 @@ const Admin = () => {
             <div className="space-y-8 max-w-6xl">
               <div>
                 <h1 className="text-black font-black text-3xl md:text-4xl uppercase tracking-wider font-serif flex items-center gap-3">
-                  <FileText className="text-brand-gold w-8 h-8 shrink-0" /> Add Blog Post
+                  <FileText className="text-brand-gold w-8 h-8 shrink-0" /> {editingBlog ? 'Edit Blog Post' : 'Add Blog Post'}
                 </h1>
-                <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">Publish architectural updates, designs, and case studies</p>
+                <p className="text-black/50 text-xs font-black tracking-widest uppercase mt-1">
+                  {editingBlog ? 'Update existing architectural update, design, or case study details' : 'Publish architectural updates, designs, and case studies'}
+                </p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -2102,7 +2204,7 @@ const Admin = () => {
                   type="submit" 
                   className="w-full bg-black text-brand-gold hover:bg-brand-gold hover:text-black font-black uppercase tracking-[0.2em] text-xs py-4 transition-colors flex items-center justify-center gap-2 cursor-pointer border border-transparent hover:border-black"
                 >
-                  <Plus size={16} /> Publish Blog Post
+                  <Plus size={16} /> {editingBlog ? 'Update Blog Post' : 'Publish Blog Post'}
                 </button>
               </form>
 

@@ -61,4 +61,35 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getOne, create, remove };
+// PUT /api/projects/:slug  — admin only
+const update = async (req, res) => {
+  try {
+    const { title, category, location, client, area, duration, description, features, image } = req.body;
+    const project = await Project.findOne({ slug: req.params.slug });
+    if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
+
+    project.title = title || project.title;
+    project.category = category || project.category;
+    project.location = location || project.location;
+    project.client = client || project.client;
+    project.area = area || project.area;
+    project.duration = duration || project.duration;
+    project.description = description || project.description;
+    
+    if (features !== undefined) {
+      project.features = Array.isArray(features)
+        ? features
+        : (features ? features.split(',').map(f => f.trim()).filter(Boolean) : []);
+    }
+    if (image !== undefined) {
+      project.image = image;
+    }
+
+    await project.save();
+    res.json({ success: true, data: project, message: 'Project updated' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getAll, getOne, create, remove, update };

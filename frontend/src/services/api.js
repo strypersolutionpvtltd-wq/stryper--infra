@@ -86,6 +86,19 @@ export const deleteProject = async (slug) => {
   }
 }
 
+export const updateProject = async (slug, projectData) => {
+  try {
+    const data = await api(`/projects/${slug}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(projectData)
+    })
+    return data
+  } catch (e) {
+    return { success: false, message: e.message }
+  }
+}
+
 // ─── BLOGS ────────────────────────────────────────────────────────────────────
 export const getBlogs = async (category = '') => {
   try {
@@ -115,6 +128,19 @@ export const deleteBlog = async (slug) => {
     const data = await api(`/blogs/${slug}`, {
       method: 'DELETE',
       headers: authHeaders()
+    })
+    return data
+  } catch (e) {
+    return { success: false, message: e.message }
+  }
+}
+
+export const updateBlog = async (slug, blogData) => {
+  try {
+    const data = await api(`/blogs/${slug}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(blogData)
     })
     return data
   } catch (e) {

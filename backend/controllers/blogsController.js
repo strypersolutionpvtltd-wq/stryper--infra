@@ -59,4 +59,28 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getOne, create, remove };
+// PUT /api/blogs/:slug  — admin only
+const update = async (req, res) => {
+  try {
+    const { title, subtitle, category, image, author, content } = req.body;
+    const blog = await Blog.findOne({ slug: req.params.slug });
+    if (!blog) return res.status(404).json({ success: false, message: 'Blog not found' });
+
+    blog.title = title || blog.title;
+    blog.subtitle = subtitle || blog.subtitle;
+    blog.category = category || blog.category;
+    blog.author = author || blog.author;
+    blog.content = content || blog.content;
+    
+    if (image !== undefined) {
+      blog.image = image;
+    }
+
+    await blog.save();
+    res.json({ success: true, data: blog, message: 'Blog updated' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getAll, getOne, create, remove, update };

@@ -17,7 +17,8 @@ import {
   getStats,
   uploadImage
 } from '../services/api'
-import { getSiteSettings, updateSiteSettings, changeAdminPasswordBackend } from '../data/store'
+// store.js fully removed — all data via api.js
+
 
 const WhatsAppIcon = ({ size = 12, className }) => (
   <svg 

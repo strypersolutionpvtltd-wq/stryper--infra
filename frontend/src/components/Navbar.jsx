@@ -2,46 +2,26 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 import logo from '../assets/logo.png'
-import { getSiteSettingsSync, getSiteSettings, getNotifications } from '../data/store'
+
+// Static site settings — update here if contact info changes
+const SITE_SETTINGS = {
+  phone: '+91 9565310410',
+  email: 'gc@stryperinteriorandinfra.com',
+  address: 'Pan India Projects',
+  whatsapp: '918448590303',
+  est: '2010',
+  website: 'www.stryperinteriorandinfra.com'
+}
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [expandedMenu, setExpandedMenu] = useState(null)
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [settings, setSettings] = useState(getSiteSettingsSync())
+  const settings = SITE_SETTINGS
   
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Track unread notifications
-  const updateNotifications = () => {
-    const list = getNotifications()
-    setUnreadCount(list.filter(n => !n.read).length)
-  }
-
-  useEffect(() => {
-    updateNotifications()
-    window.addEventListener('stryper_notifications_updated', updateNotifications)
-    
-    const loadSettings = async () => {
-      const data = await getSiteSettings()
-      if (data) {
-        setSettings(data)
-      }
-    }
-    loadSettings()
-
-    const handleSettingsUpdate = () => {
-      loadSettings()
-    }
-    window.addEventListener('stryper_settings_updated', handleSettingsUpdate)
-    
-    return () => {
-      window.removeEventListener('stryper_notifications_updated', updateNotifications)
-      window.removeEventListener('stryper_settings_updated', handleSettingsUpdate)
-    }
-  }, [])
 
   useEffect(() => {
     const handleScroll = () => {

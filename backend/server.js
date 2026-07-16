@@ -38,7 +38,20 @@ connectDB();
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5175',
+  origin: (origin, callback) => {
+    // Allow any localhost port in dev, or the configured FRONTEND_URL in prod
+    const allowed = [
+      process.env.FRONTEND_URL,
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://localhost:4173',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5175',
+    ].filter(Boolean);
+    if (!origin || allowed.includes(origin)) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '20mb' }));

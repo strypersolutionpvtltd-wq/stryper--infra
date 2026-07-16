@@ -1,31 +1,25 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getSiteSettingsSync, getSiteSettings } from '../data/store'
+// store.js removed — using static settings
 import logo from '../assets/logo.png'
 import { Phone, Mail, MapPin } from 'lucide-react'
 import chairmanImg from '../assets/screenshot-footer.png'
+
+const SITE_SETTINGS = {
+  phone: '+91 9565310410',
+  email: 'gc@stryperinteriorandinfra.com',
+  address: 'Pan India Projects',
+  whatsapp: '918448590303',
+  est: '2010',
+  website: 'www.stryperinteriorandinfra.com'
+}
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
-  const [settings, setSettings] = useState(getSiteSettingsSync())
+  const settings = SITE_SETTINGS
 
-  useEffect(() => {
-    const loadSettings = async () => {
-      const data = await getSiteSettings()
-      if (data) {
-        setSettings(data)
-      }
-    }
-    loadSettings()
-
-    const handleSettingsUpdate = () => {
-      loadSettings()
-    }
-    window.addEventListener('stryper_settings_updated', handleSettingsUpdate)
-    return () => window.removeEventListener('stryper_settings_updated', handleSettingsUpdate)
-  }, [])
 
   const handleSubscribe = (e) => {
     e.preventDefault()

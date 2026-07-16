@@ -120,7 +120,7 @@ const startServer = () => {
       console.warn(`⚠️  Port ${PORT} busy — killing existing process...`);
       const { exec } = require('child_process');
       const killCmd = process.platform === 'win32'
-        ? `FOR /F "tokens=5" %i IN ('netstat -aon ^| findstr :${PORT} ^| findstr LISTENING') DO taskkill /PID %i /F`
+        ? `powershell -Command "Get-NetTCPConnection -LocalPort ${PORT} -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"`
         : `fuser -k ${PORT}/tcp`;
       exec(killCmd, () => {
         setTimeout(() => {

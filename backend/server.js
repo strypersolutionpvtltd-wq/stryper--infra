@@ -40,8 +40,19 @@ connectDB();
 app.use(cors({
   origin: (origin, callback) => {
     // Allow any localhost port in dev, or the configured FRONTEND_URL in prod
+    const frontendUrl = process.env.FRONTEND_URL
+    let alternativeUrl = ''
+    if (frontendUrl) {
+      if (frontendUrl.includes('://www.')) {
+        alternativeUrl = frontendUrl.replace('://www.', '://')
+      } else {
+        alternativeUrl = frontendUrl.replace('://', '://www.')
+      }
+    }
+
     const allowed = [
-      process.env.FRONTEND_URL,
+      frontendUrl,
+      alternativeUrl,
       'http://localhost:5173',
       'http://localhost:5174',
       'http://localhost:5175',

@@ -17,22 +17,16 @@ const connectDB = async () => {
       heartbeatFrequencyMS:     10000,
     });
     console.log('✅  MongoDB connected successfully');
-    require('./db/seed');
+    
+    // Actually run the seeding logic to populate collections if they are empty
+    const seed = require('./db/seed');
+    await seed();
   } catch (err) {
     console.error('❌  MongoDB connection error:', err.message);
     console.log('🔄  Retrying MongoDB in 5 seconds...');
     setTimeout(connectDB, 5000);
   }
 };
-
-mongoose.connection.on('disconnected', () => {
-  console.warn('⚠️  MongoDB disconnected — reconnecting...');
-  setTimeout(connectDB, 3000);
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('MongoDB error:', err.message);
-});
 
 connectDB();
 
